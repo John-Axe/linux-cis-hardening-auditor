@@ -1,9 +1,9 @@
 {
   "summary": {
-    "total_checks": 35,
-    "PASS": 18,
-    "FAIL": 9,
-    "NOT_APPLICABLE": 8
+    "total_checks": 191,
+    "PASS": 86,
+    "FAIL": 69,
+    "NOT_APPLICABLE": 36
   },
   "checks": [
     {
@@ -59,6 +59,411 @@
       "rationale": "root's primary group should be the root group (GID 0), matching standard system convention; a different primary group is unusual and worth investigating (could indicate tampering or a broken account migration).",
       "evidence": "root:x:0:0",
       "remediation": "usermod -g 0 root"
+    },
+    {
+      "id": "CIS-6.2.3",
+      "title": "No duplicate UIDs exist in /etc/passwd",
+      "category": "auth",
+      "status": "PASS",
+      "rationale": "Two accounts sharing a UID are indistinguishable to the kernel and most tools - files 'owned' by one are equally accessible to both, and audit logs can't tell them apart.",
+      "evidence": "Checked 27 entries in /etc/passwd. No duplicates found.",
+      "remediation": "Assign each account a unique UID with usermod -u <new-uid> <name>."
+    },
+    {
+      "id": "CIS-6.2.4",
+      "title": "No duplicate GIDs exist in /etc/group",
+      "category": "auth",
+      "status": "PASS",
+      "rationale": "Two groups sharing a GID grant identical file access to both groups' members, which usually indicates a configuration mistake rather than an intentional access grant.",
+      "evidence": "Checked 59 entries in /etc/group. No duplicates found.",
+      "remediation": "Assign each group a unique GID with groupmod -g <new-gid> <name>."
+    },
+    {
+      "id": "CIS-6.2.5",
+      "title": "No duplicate usernames exist in /etc/passwd",
+      "category": "auth",
+      "status": "PASS",
+      "rationale": "Duplicate usernames create ambiguity about which entry (and which UID) applies for tools that look up by name, which can be abused to run as an unintended UID.",
+      "evidence": "Checked 27 entries in /etc/passwd. No duplicates found.",
+      "remediation": "Rename or remove the duplicate entry so each username appears once."
+    },
+    {
+      "id": "CIS-6.2.6",
+      "title": "No duplicate group names exist in /etc/group",
+      "category": "auth",
+      "status": "PASS",
+      "rationale": "Same ambiguity risk as duplicate usernames, applied to group name lookups.",
+      "evidence": "Checked 59 entries in /etc/group. No duplicates found.",
+      "remediation": "Rename or remove the duplicate entry so each group name appears once."
+    },
+    {
+      "id": "CIS-6.2.7",
+      "title": "root's PATH does not contain a relative or world-writable directory",
+      "category": "auth",
+      "status": "PASS",
+      "rationale": "A relative entry (like '.') or a world-writable directory in root's PATH lets any local user plant a malicious binary that root might execute by name, a classic privilege-escalation trick.",
+      "evidence": "PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games' (evaluated for the account running this audit, UID 1000)",
+      "remediation": "Remove any relative or world-writable directory from root's PATH in /root/.bashrc, /root/.profile, or /etc/profile."
+    },
+    {
+      "id": "CIS-6.2.8",
+      "title": "No interactive user has a .netrc file in their home directory",
+      "category": "auth",
+      "status": "PASS",
+      "rationale": "A .netrc file can store plaintext credentials for automated FTP/HTTP logins; if present it's a high-value target for any attacker who gains even unprivileged read access to that home directory.",
+      "evidence": "Checked 1 interactive user home director(ies) for .netrc. None found.",
+      "remediation": "Review and remove any .netrc file found: rm ~<user>/.netrc"
+    },
+    {
+      "id": "CIS-6.2.10",
+      "title": "No interactive user has a .forward file in their home directory",
+      "category": "auth",
+      "status": "PASS",
+      "rationale": "A .forward file silently forwards a user's mail to another address (potentially external) - a common way to exfiltrate sensitive mail (e.g. password reset emails) after an account is compromised.",
+      "evidence": "Checked 1 interactive user home director(ies) for .forward. None found.",
+      "remediation": "Review and remove any .forward file found: rm ~<user>/.forward"
+    },
+    {
+      "id": "CIS-6.2.11",
+      "title": "No interactive user has a .rhosts file in their home directory",
+      "category": "auth",
+      "status": "PASS",
+      "rationale": "A .rhosts file grants passwordless rlogin/rsh trust to listed remote hosts/users - a legacy trust mechanism with no cryptographic authentication that should never be present on a hardened host.",
+      "evidence": "Checked 1 interactive user home director(ies) for .rhosts. None found.",
+      "remediation": "Review and remove any .rhosts file found: rm ~<user>/.rhosts"
+    },
+    {
+      "id": "CIS-6.2.12",
+      "title": "All interactive users' home directories exist",
+      "category": "auth",
+      "status": "PASS",
+      "rationale": "An account whose home directory is missing will get shell startup errors and, worse, some shells fall back to '/' as a working directory - the account still works, just in a confusing and potentially insecure state.",
+      "evidence": "Checked 1 interactive user account(s). All home directories exist.",
+      "remediation": "mkdir -p <home> && chown <user>:<user> <home>  # or fix the passwd entry if the path is wrong"
+    },
+    {
+      "id": "CIS-6.2.13",
+      "title": "All interactive users' home directories are owned by that user",
+      "category": "auth",
+      "status": "PASS",
+      "rationale": "If a home directory is owned by someone other than its account, that other owner can read/modify the account's dotfiles (e.g. plant a malicious .bashrc), functionally hijacking the account on next login.",
+      "evidence": "Checked 1 existing home director(ies). All correctly owned.",
+      "remediation": "chown <user>:<user> <home-dir>  # for each reported mismatch"
+    },
+    {
+      "id": "CIS-6.2.14",
+      "title": "The shadow group has no members",
+      "category": "auth",
+      "status": "PASS",
+      "rationale": "Members of the 'shadow' group can read /etc/shadow directly, which is equivalent to root-level access to every account's password hash - this group should stay empty on a hardened system.",
+      "evidence": "shadow group members: (none)",
+      "remediation": "gpasswd -d <user> shadow  # for each unexpected member"
+    },
+    {
+      "id": "CIS-6.2.15",
+      "title": "Every group referenced in /etc/passwd exists in /etc/group",
+      "category": "auth",
+      "status": "PASS",
+      "rationale": "A passwd entry pointing at a GID with no corresponding group is usually a leftover from a deleted group - if that GID gets reused later, the old account unexpectedly regains whatever access the new group carries.",
+      "evidence": "Checked 27 /etc/passwd entries against 59 known GIDs. All primary GIDs resolve to a real group.",
+      "remediation": "Create the missing group (groupadd -g <gid> <name>) or reassign the affected user(s) to a valid group with usermod -g."
+    },
+    {
+      "id": "CIS-6.2.16",
+      "title": "No legacy NIS '+' entries exist in /etc/passwd",
+      "category": "auth",
+      "status": "PASS",
+      "rationale": "A line starting with '+' in /etc/passwd is a legacy NIS include directive; if NIS isn't in use (or is misconfigured), it can leave an unauthenticated wildcard entry that grants unintended access.",
+      "evidence": "Checked 27 line(s) in /etc/passwd. No '+' entries found.",
+      "remediation": "Remove any line starting with '+' from /etc/passwd."
+    },
+    {
+      "id": "CIS-6.2.17",
+      "title": "No legacy NIS '+' entries exist in /etc/shadow",
+      "category": "auth",
+      "status": "NOT_APPLICABLE",
+      "rationale": "A line starting with '+' in /etc/shadow is a legacy NIS include directive; if NIS isn't in use (or is misconfigured), it can leave an unauthenticated wildcard entry that grants unintended access.",
+      "evidence": "/etc/shadow could not be read.",
+      "remediation": "Remove any line starting with '+' from /etc/shadow."
+    },
+    {
+      "id": "CIS-6.2.18",
+      "title": "No legacy NIS '+' entries exist in /etc/group",
+      "category": "auth",
+      "status": "PASS",
+      "rationale": "A line starting with '+' in /etc/group is a legacy NIS include directive; if NIS isn't in use (or is misconfigured), it can leave an unauthenticated wildcard entry that grants unintended access.",
+      "evidence": "Checked 59 line(s) in /etc/group. No '+' entries found.",
+      "remediation": "Remove any line starting with '+' from /etc/group."
+    },
+    {
+      "id": "CIS-5.4.3",
+      "title": "The system default password hashing algorithm is SHA-512",
+      "category": "auth",
+      "status": "FAIL",
+      "rationale": "Weaker legacy hashing algorithms (DES, MD5) are fast to compute, which makes offline brute-force/dictionary attacks against a stolen /etc/shadow dramatically cheaper - SHA-512 (and PAM's rounds tuning) is deliberately slow to compute.",
+      "evidence": "/etc/login.defs ENCRYPT_METHOD YESCRYPT (expected SHA512)",
+      "remediation": "Set 'ENCRYPT_METHOD SHA512' in /etc/login.defs, and ensure pam_unix.so in /etc/pam.d/common-password uses sha512."
+    },
+    {
+      "id": "CIS-5.4.5",
+      "title": "A default account inactivity lock period is configured",
+      "category": "auth",
+      "status": "FAIL",
+      "rationale": "Without a default INACTIVE period, an account whose password has expired stays enabled indefinitely instead of being automatically locked - useful for catching accounts nobody remembered to deprovision.",
+      "evidence": "/etc/default/useradd INACTIVE=None (expected INACTIVE set to a value >= 0)",
+      "remediation": "Set 'INACTIVE=30' in /etc/default/useradd (existing accounts also need: chage --inactive 30 <user>)"
+    },
+    {
+      "id": "CIS-1.8.1",
+      "title": "/etc/motd permissions are 644 or more restrictive, owned by root",
+      "category": "banners",
+      "status": "FAIL",
+      "rationale": "The message-of-the-day file should not be writable by non-root users, or a local user could plant misleading/malicious content shown to every other user who logs in.",
+      "evidence": "/etc/motd does not exist.",
+      "remediation": "chown root:root /etc/motd && chmod 644 /etc/motd"
+    },
+    {
+      "id": "CIS-1.8.2",
+      "title": "/etc/issue permissions are 644 or more restrictive, owned by root",
+      "category": "banners",
+      "status": "PASS",
+      "rationale": "/etc/issue is shown before local console login; if writable by non-root it could be tampered with to display misleading prompts.",
+      "evidence": "/etc/issue: mode=644 owner=root group=root",
+      "remediation": "chown root:root /etc/issue && chmod 644 /etc/issue"
+    },
+    {
+      "id": "CIS-1.8.3",
+      "title": "/etc/issue.net permissions are 644 or more restrictive, owned by root",
+      "category": "banners",
+      "status": "PASS",
+      "rationale": "/etc/issue.net is shown before remote (SSH) login when configured as the sshd Banner; if writable by non-root it could be tampered with.",
+      "evidence": "/etc/issue.net: mode=644 owner=root group=root",
+      "remediation": "chown root:root /etc/issue.net && chmod 644 /etc/issue.net"
+    },
+    {
+      "id": "CIS-1.8.4",
+      "title": "/etc/issue does not reveal OS or version information",
+      "category": "banners",
+      "status": "PASS",
+      "rationale": "A login banner that prints the OS name/kernel version/host info (via \\m \\r \\s \\v escapes) hands an attacker free reconnaissance before they've even authenticated.",
+      "evidence": "/etc/issue content: 'Ubuntu 26.04 LTS \\\\n \\\\l\\n\\n'",
+      "remediation": "Replace /etc/issue with a generic authorized-access-only warning, removing any \\m \\r \\s \\v escape sequences."
+    },
+    {
+      "id": "CIS-1.8.5",
+      "title": "/etc/issue.net does not reveal OS or version information",
+      "category": "banners",
+      "status": "PASS",
+      "rationale": "Same rationale as /etc/issue: the remote-login banner shouldn't hand out OS/version reconnaissance before authentication.",
+      "evidence": "/etc/issue.net content: 'Ubuntu 26.04 LTS\\n'",
+      "remediation": "Replace /etc/issue.net with a generic authorized-access-only warning, removing any \\m \\r \\s \\v escape sequences."
+    },
+    {
+      "id": "CIS-1.8.6",
+      "title": "/etc/motd does not reveal OS or version information",
+      "category": "banners",
+      "status": "FAIL",
+      "rationale": "Many distributions auto-populate /etc/motd (or update-motd.d scripts) with kernel/OS version banners at login; that's useful reconnaissance for an attacker who's already gained a shell and shouldn't be handed out unnecessarily either.",
+      "evidence": "/etc/motd does not exist.",
+      "remediation": "Remove OS/version-revealing content from /etc/motd and any /etc/update-motd.d/ scripts that generate it."
+    },
+    {
+      "id": "CIS-1.9.1",
+      "title": "GDM displays a login warning banner (if GDM is installed)",
+      "category": "banners",
+      "status": "NOT_APPLICABLE",
+      "rationale": "On a system with a graphical login manager, the text-console banners in /etc/issue don't apply to GDM's own login screen - it needs its own banner-message setting to carry the same legal/monitoring notice.",
+      "evidence": "GDM is not installed on this host (checked for gdm3/gdm binaries and /etc/gdm3) - this is a headless/server system, so a GDM login banner does not apply.",
+      "remediation": "gsettings set org.gnome.login-screen banner-message-enable true && gsettings set org.gnome.login-screen banner-message-text 'Authorized uses only.'  (via a dconf profile/db for the gdm user, not interactively)"
+    },
+    {
+      "id": "CIS-5.1.1",
+      "title": "The cron daemon is enabled and active",
+      "category": "cron_pam",
+      "status": "PASS",
+      "rationale": "Scheduled jobs (log rotation, security scans, unattended-upgrades' own timer in some configurations) depend on cron actually running - an installed-but-stopped cron daemon silently breaks all of them.",
+      "evidence": "systemctl is-active cron: active; is-enabled: enabled",
+      "remediation": "systemctl --now enable cron"
+    },
+    {
+      "id": "CIS-5.1.2",
+      "title": "/etc/crontab permissions are 600 or more restrictive, owned by root",
+      "category": "cron_pam",
+      "status": "FAIL",
+      "rationale": "If /etc/crontab is writable by non-root users, a local user could plant a job that runs with root's cron privileges, a direct privilege-escalation path.",
+      "evidence": "/etc/crontab: mode=644 owner=root group=root (expected mode <= 600, owner root)",
+      "remediation": "chown root:root /etc/crontab && chmod 600 /etc/crontab"
+    },
+    {
+      "id": "CIS-5.1.3",
+      "title": "/etc/cron.hourly permissions are 700 or more restrictive, owned by root",
+      "category": "cron_pam",
+      "status": "FAIL",
+      "rationale": "If /etc/cron.hourly is writable by non-root users, a local user could plant a job that runs with root's cron privileges, a direct privilege-escalation path.",
+      "evidence": "/etc/cron.hourly: mode=755 owner=root group=root (expected mode <= 700, owner root)",
+      "remediation": "chown root:root /etc/cron.hourly && chmod 700 /etc/cron.hourly"
+    },
+    {
+      "id": "CIS-5.1.4",
+      "title": "/etc/cron.daily permissions are 700 or more restrictive, owned by root",
+      "category": "cron_pam",
+      "status": "FAIL",
+      "rationale": "If /etc/cron.daily is writable by non-root users, a local user could plant a job that runs with root's cron privileges, a direct privilege-escalation path.",
+      "evidence": "/etc/cron.daily: mode=755 owner=root group=root (expected mode <= 700, owner root)",
+      "remediation": "chown root:root /etc/cron.daily && chmod 700 /etc/cron.daily"
+    },
+    {
+      "id": "CIS-5.1.5",
+      "title": "/etc/cron.weekly permissions are 700 or more restrictive, owned by root",
+      "category": "cron_pam",
+      "status": "FAIL",
+      "rationale": "If /etc/cron.weekly is writable by non-root users, a local user could plant a job that runs with root's cron privileges, a direct privilege-escalation path.",
+      "evidence": "/etc/cron.weekly: mode=755 owner=root group=root (expected mode <= 700, owner root)",
+      "remediation": "chown root:root /etc/cron.weekly && chmod 700 /etc/cron.weekly"
+    },
+    {
+      "id": "CIS-5.1.6",
+      "title": "/etc/cron.monthly permissions are 700 or more restrictive, owned by root",
+      "category": "cron_pam",
+      "status": "FAIL",
+      "rationale": "If /etc/cron.monthly is writable by non-root users, a local user could plant a job that runs with root's cron privileges, a direct privilege-escalation path.",
+      "evidence": "/etc/cron.monthly: mode=755 owner=root group=root (expected mode <= 700, owner root)",
+      "remediation": "chown root:root /etc/cron.monthly && chmod 700 /etc/cron.monthly"
+    },
+    {
+      "id": "CIS-5.1.7",
+      "title": "/etc/cron.d permissions are 700 or more restrictive, owned by root",
+      "category": "cron_pam",
+      "status": "FAIL",
+      "rationale": "If /etc/cron.d is writable by non-root users, a local user could plant a job that runs with root's cron privileges, a direct privilege-escalation path.",
+      "evidence": "/etc/cron.d: mode=755 owner=root group=root (expected mode <= 700, owner root)",
+      "remediation": "chown root:root /etc/cron.d && chmod 700 /etc/cron.d"
+    },
+    {
+      "id": "CIS-5.1.9",
+      "title": "at is restricted to authorized users (at.allow present, at.deny absent)",
+      "category": "cron_pam",
+      "status": "FAIL",
+      "rationale": "Same rationale as cron.allow (CIS-5.1.8 in checks/logging_audit.py): without an allow-list, any local user can schedule a one-off privileged-context job via 'at'.",
+      "evidence": "/etc/at.allow exists=False, /etc/at.deny exists=False (expected at.allow to exist and at.deny to not exist)",
+      "remediation": "touch /etc/at.allow && chmod 600 /etc/at.allow && rm -f /etc/at.deny   # list only trusted usernames, one per line, in at.allow"
+    },
+    {
+      "id": "CIS-5.1.10",
+      "title": "Access to the su command is restricted to a defined group",
+      "category": "cron_pam",
+      "status": "FAIL",
+      "rationale": "Without pam_wheel restricting su, any local user can attempt to su to root (still needing root's password, but it removes an easy detection point and lets any account brute-force-guess it).",
+      "evidence": "/etc/pam.d/su references pam_wheel.so: False",
+      "remediation": "Add 'auth required pam_wheel.so use_uid group=sudo' to /etc/pam.d/su"
+    },
+    {
+      "id": "CIS-5.5.1.1",
+      "title": "pwquality minlen minlen >= 14",
+      "category": "cron_pam",
+      "status": "FAIL",
+      "rationale": "A short minimum password length is the single biggest factor in how fast an offline attacker can brute-force a stolen hash.",
+      "evidence": "minlen is not set in /etc/security/pwquality.conf (not found) (pwquality default does not enforce this).",
+      "remediation": "Set 'minlen = <value>' in /etc/security/pwquality.conf"
+    },
+    {
+      "id": "CIS-5.5.1.2",
+      "title": "pwquality dcredit dcredit <= -1 (at least one digit required)",
+      "category": "cron_pam",
+      "status": "FAIL",
+      "rationale": "Requiring at least one digit meaningfully increases the password keyspace against dictionary-based guessing.",
+      "evidence": "dcredit is not set in /etc/security/pwquality.conf (not found) (pwquality default does not enforce this).",
+      "remediation": "Set 'dcredit = <value>' in /etc/security/pwquality.conf"
+    },
+    {
+      "id": "CIS-5.5.1.3",
+      "title": "pwquality ucredit ucredit <= -1 (at least one uppercase letter required)",
+      "category": "cron_pam",
+      "status": "FAIL",
+      "rationale": "Requiring at least one uppercase character increases keyspace against dictionary-based guessing.",
+      "evidence": "ucredit is not set in /etc/security/pwquality.conf (not found) (pwquality default does not enforce this).",
+      "remediation": "Set 'ucredit = <value>' in /etc/security/pwquality.conf"
+    },
+    {
+      "id": "CIS-5.5.1.4",
+      "title": "pwquality lcredit lcredit <= -1 (at least one lowercase letter required)",
+      "category": "cron_pam",
+      "status": "FAIL",
+      "rationale": "Requiring at least one lowercase character prevents all-uppercase or all-numeric trivial passwords.",
+      "evidence": "lcredit is not set in /etc/security/pwquality.conf (not found) (pwquality default does not enforce this).",
+      "remediation": "Set 'lcredit = <value>' in /etc/security/pwquality.conf"
+    },
+    {
+      "id": "CIS-5.5.1.5",
+      "title": "pwquality ocredit ocredit <= -1 (at least one special character required)",
+      "category": "cron_pam",
+      "status": "FAIL",
+      "rationale": "Requiring at least one special character further increases keyspace against dictionary-based guessing.",
+      "evidence": "ocredit is not set in /etc/security/pwquality.conf (not found) (pwquality default does not enforce this).",
+      "remediation": "Set 'ocredit = <value>' in /etc/security/pwquality.conf"
+    },
+    {
+      "id": "CIS-5.5.1.6",
+      "title": "pwquality maxrepeat 0 < maxrepeat <= 3",
+      "category": "cron_pam",
+      "status": "FAIL",
+      "rationale": "Without a repeat-character limit, trivially weak passwords like 'aaaaaaaaaaaa' pass a pure length requirement.",
+      "evidence": "maxrepeat is not set in /etc/security/pwquality.conf (not found) (pwquality default does not enforce this).",
+      "remediation": "Set 'maxrepeat = <value>' in /etc/security/pwquality.conf"
+    },
+    {
+      "id": "CIS-5.5.1.7",
+      "title": "pwquality difok difok >= 2",
+      "category": "cron_pam",
+      "status": "FAIL",
+      "rationale": "difok requires a new password to differ from the old one by enough characters that a trivial single-character rotation doesn't count as a real password change.",
+      "evidence": "difok is not set in /etc/security/pwquality.conf (not found) (pwquality default does not enforce this).",
+      "remediation": "Set 'difok = <value>' in /etc/security/pwquality.conf"
+    },
+    {
+      "id": "CIS-5.5.1.8",
+      "title": "pwquality retry 0 < retry <= 3",
+      "category": "cron_pam",
+      "status": "FAIL",
+      "rationale": "Limiting retries during interactive password changes reduces the window for scripted guessing against the password-change prompt itself.",
+      "evidence": "retry is not set in /etc/security/pwquality.conf (not found) (pwquality default does not enforce this).",
+      "remediation": "Set 'retry = <value>' in /etc/security/pwquality.conf"
+    },
+    {
+      "id": "CIS-5.5.2.1",
+      "title": "faillock deny is set to 5 or fewer failed attempts",
+      "category": "cron_pam",
+      "status": "FAIL",
+      "rationale": "Without a bounded failed-attempt count, an attacker can brute-force passwords indefinitely with no lockout at all.",
+      "evidence": "/etc/security/faillock.conf deny = None",
+      "remediation": "Set 'deny = 5' in /etc/security/faillock.conf"
+    },
+    {
+      "id": "CIS-5.5.2.2",
+      "title": "faillock unlock_time is configured",
+      "category": "cron_pam",
+      "status": "FAIL",
+      "rationale": "unlock_time defines how long an account stays locked after hitting the deny threshold - without it set, the lockout duration falls back to a default that may not match this host's intended policy.",
+      "evidence": "/etc/security/faillock.conf unlock_time = None",
+      "remediation": "Set 'unlock_time = 900' in /etc/security/faillock.conf"
+    },
+    {
+      "id": "CIS-5.5.2.3",
+      "title": "faillock even_deny_root is enabled",
+      "category": "cron_pam",
+      "status": "FAIL",
+      "rationale": "Without even_deny_root, the lockout policy exempts the root account entirely, leaving it open to unlimited online password guessing.",
+      "evidence": "/etc/security/faillock.conf even_deny_root = None",
+      "remediation": "Add 'even_deny_root' to /etc/security/faillock.conf"
+    },
+    {
+      "id": "CIS-5.5.3.1",
+      "title": "Password reuse (history) is restricted to at least the last 24 passwords",
+      "category": "cron_pam",
+      "status": "FAIL",
+      "rationale": "Without a remembered-password history, a user can satisfy a forced password change by immediately rotating back to a password they've used before, defeating the point of periodic rotation.",
+      "evidence": "/etc/pam.d/common-password pam_pwhistory.so remember=None (expected remember >= 24)",
+      "remediation": "Add 'remember = 24' to the pam_pwhistory.so line in /etc/pam.d/common-password"
     },
     {
       "id": "CIS-6.1.2",
@@ -133,6 +538,375 @@
       "remediation": "Set 'UMASK 027' in /etc/login.defs, and add 'umask 027' to /etc/profile.d/local-umask.sh for shell sessions."
     },
     {
+      "id": "CIS-1.1.2.1",
+      "title": "/tmp is a separate partition",
+      "category": "filesystem",
+      "status": "PASS",
+      "rationale": "Isolating /tmp on its own partition lets it be mounted with nodev/nosuid/noexec and stops a full /tmp from taking down the rest of the filesystem.",
+      "evidence": "/tmp is a separate mount point (fstype=tmpfs, options=nodev,nosuid,nr_inodes=1048576,rw,size=16412504k).",
+      "remediation": "Add a dedicated /tmp entry to /etc/fstab (or a systemd tmp.mount unit) and remount."
+    },
+    {
+      "id": "CIS-1.1.2.2",
+      "title": "/tmp is mounted with nodev",
+      "category": "filesystem",
+      "status": "PASS",
+      "rationale": "/tmp is world-writable by design; nodev stops it being used to plant device nodes as a privilege-escalation trick.",
+      "evidence": "/tmp options: nodev,nosuid,nr_inodes=1048576,rw,size=16412504k",
+      "remediation": "Add 'nodev' to /tmp's mount options in /etc/fstab and remount."
+    },
+    {
+      "id": "CIS-1.1.2.3",
+      "title": "/tmp is mounted with nosuid",
+      "category": "filesystem",
+      "status": "PASS",
+      "rationale": "nosuid on /tmp prevents a SUID/SGID binary planted there from having its privilege bits honored, closing a common local privilege-escalation path.",
+      "evidence": "/tmp options: nodev,nosuid,nr_inodes=1048576,rw,size=16412504k",
+      "remediation": "Add 'nosuid' to /tmp's mount options in /etc/fstab and remount."
+    },
+    {
+      "id": "CIS-1.1.2.4",
+      "title": "/tmp is mounted with noexec",
+      "category": "filesystem",
+      "status": "FAIL",
+      "rationale": "noexec on /tmp stops binaries dropped there (e.g. by a compromised web app writing to a shared /tmp) from being executed directly out of it.",
+      "evidence": "/tmp options: nodev,nosuid,nr_inodes=1048576,rw,size=16412504k (expected 'noexec' among mount options)",
+      "remediation": "Add 'noexec' to /tmp's mount options in /etc/fstab and remount."
+    },
+    {
+      "id": "CIS-1.1.2.5",
+      "title": "/var is a separate partition",
+      "category": "filesystem",
+      "status": "FAIL",
+      "rationale": "Isolating /var (logs, spool, package cache) stops runaway log growth from filling the root filesystem and taking down the whole host.",
+      "evidence": "/var is not listed as a separate mount point in /proc/mounts (it is part of its parent filesystem).",
+      "remediation": "Add a dedicated /var entry to /etc/fstab during install/repartition."
+    },
+    {
+      "id": "CIS-1.1.2.6",
+      "title": "/var/tmp is a separate partition",
+      "category": "filesystem",
+      "status": "FAIL",
+      "rationale": "Like /tmp, /var/tmp is world-writable and used for temporary files that can persist across reboots; isolating it enables the same nodev/nosuid/noexec hardening independently of the root filesystem.",
+      "evidence": "/var/tmp is not listed as a separate mount point in /proc/mounts (it is part of its parent filesystem).",
+      "remediation": "Add a dedicated /var/tmp entry to /etc/fstab and remount."
+    },
+    {
+      "id": "CIS-1.1.2.7",
+      "title": "/var/tmp is mounted with nodev",
+      "category": "filesystem",
+      "status": "NOT_APPLICABLE",
+      "rationale": "Same rationale as /tmp nodev: /var/tmp is world-writable and shouldn't be usable to plant device nodes.",
+      "evidence": "/var/tmp is not a separate mount point on this host, so the 'nodev' mount option does not apply.",
+      "remediation": "Add 'nodev' to /var/tmp's mount options in /etc/fstab and remount."
+    },
+    {
+      "id": "CIS-1.1.2.8",
+      "title": "/var/tmp is mounted with nosuid",
+      "category": "filesystem",
+      "status": "NOT_APPLICABLE",
+      "rationale": "Same rationale as /tmp nosuid, applied to /var/tmp.",
+      "evidence": "/var/tmp is not a separate mount point on this host, so the 'nosuid' mount option does not apply.",
+      "remediation": "Add 'nosuid' to /var/tmp's mount options in /etc/fstab and remount."
+    },
+    {
+      "id": "CIS-1.1.2.9",
+      "title": "/var/tmp is mounted with noexec",
+      "category": "filesystem",
+      "status": "NOT_APPLICABLE",
+      "rationale": "Same rationale as /tmp noexec, applied to /var/tmp.",
+      "evidence": "/var/tmp is not a separate mount point on this host, so the 'noexec' mount option does not apply.",
+      "remediation": "Add 'noexec' to /var/tmp's mount options in /etc/fstab and remount."
+    },
+    {
+      "id": "CIS-1.1.2.10",
+      "title": "/var/log is a separate partition",
+      "category": "filesystem",
+      "status": "FAIL",
+      "rationale": "Isolating /var/log stops a log-flooding attack (or a runaway process) from filling the root filesystem, and makes log storage easier to size and monitor independently.",
+      "evidence": "/var/log is not listed as a separate mount point in /proc/mounts (it is part of its parent filesystem).",
+      "remediation": "Add a dedicated /var/log entry to /etc/fstab and remount."
+    },
+    {
+      "id": "CIS-1.1.2.11",
+      "title": "/var/log/audit is a separate partition",
+      "category": "filesystem",
+      "status": "FAIL",
+      "rationale": "Isolating the audit log partition protects auditd's records from being lost to a full root/var filesystem, which matters for incident response and compliance retention.",
+      "evidence": "/var/log/audit is not listed as a separate mount point in /proc/mounts (it is part of its parent filesystem).",
+      "remediation": "Add a dedicated /var/log/audit entry to /etc/fstab and remount."
+    },
+    {
+      "id": "CIS-1.1.2.12",
+      "title": "/home is a separate partition",
+      "category": "filesystem",
+      "status": "FAIL",
+      "rationale": "Isolating user home directories limits the blast radius of a single user filling the disk and makes it possible to apply nodev to user-writable storage.",
+      "evidence": "/home is not listed as a separate mount point in /proc/mounts (it is part of its parent filesystem).",
+      "remediation": "Add a dedicated /home entry to /etc/fstab during install/repartition."
+    },
+    {
+      "id": "CIS-1.1.2.13",
+      "title": "/home is mounted with nodev",
+      "category": "filesystem",
+      "status": "NOT_APPLICABLE",
+      "rationale": "User home directories don't need to host device nodes; nodev removes that as an escalation path.",
+      "evidence": "/home is not a separate mount point on this host, so the 'nodev' mount option does not apply.",
+      "remediation": "Add 'nodev' to /home's mount options in /etc/fstab and remount."
+    },
+    {
+      "id": "CIS-1.1.2.14",
+      "title": "/dev/shm is mounted with nodev",
+      "category": "filesystem",
+      "status": "PASS",
+      "rationale": "/dev/shm is world-writable shared memory; nodev stops it being used to plant device nodes.",
+      "evidence": "/dev/shm options: noatime,nodev,nosuid,rw",
+      "remediation": "Add 'nodev' to /dev/shm's mount options in /etc/fstab and remount."
+    },
+    {
+      "id": "CIS-1.1.2.15",
+      "title": "/dev/shm is mounted with nosuid",
+      "category": "filesystem",
+      "status": "PASS",
+      "rationale": "nosuid on /dev/shm prevents a SUID binary planted in shared memory from having its privilege bits honored.",
+      "evidence": "/dev/shm options: noatime,nodev,nosuid,rw",
+      "remediation": "Add 'nosuid' to /dev/shm's mount options in /etc/fstab and remount."
+    },
+    {
+      "id": "CIS-1.1.2.16",
+      "title": "/dev/shm is mounted with noexec",
+      "category": "filesystem",
+      "status": "FAIL",
+      "rationale": "noexec on /dev/shm stops code staged in shared memory (a common fileless-malware technique) from being executed directly.",
+      "evidence": "/dev/shm options: noatime,nodev,nosuid,rw (expected 'noexec' among mount options)",
+      "remediation": "Add 'noexec' to /dev/shm's mount options in /etc/fstab and remount."
+    },
+    {
+      "id": "CIS-1.1.2.17",
+      "title": "All world-writable directories in key paths have the sticky bit set",
+      "category": "filesystem",
+      "status": "FAIL",
+      "rationale": "Without the sticky bit, any user can delete or rename any other user's files inside a shared world-writable directory like /tmp - the sticky bit restricts deletion/rename to the file's own owner.",
+      "evidence": "3 world-writable director(ies) without the sticky bit under /tmp, /var/tmp: /tmp/.dotnet, /tmp/.X11-unix, /tmp/.dotnet/shm",
+      "remediation": "For each reported directory: chmod +t <dir>"
+    },
+    {
+      "id": "CIS-1.6.3",
+      "title": "Kernel pointers are restricted from unprivileged reads (kernel.kptr_restrict)",
+      "category": "kernel_hardening",
+      "status": "PASS",
+      "rationale": "Leaking kernel pointer addresses to unprivileged users defeats kernel-space ASLR, making kernel exploits significantly easier to develop and reliably trigger.",
+      "evidence": "kernel.kptr_restrict = 1",
+      "remediation": "sysctl -w kernel.kptr_restrict=1 && echo 'kernel.kptr_restrict=1' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-1.6.4",
+      "title": "dmesg output is restricted to privileged users (kernel.dmesg_restrict)",
+      "category": "kernel_hardening",
+      "status": "FAIL",
+      "rationale": "The kernel ring buffer can contain kernel addresses and hardware details useful for building an exploit; restricting dmesg to root denies that reconnaissance to an unprivileged local user.",
+      "evidence": "kernel.dmesg_restrict = 0 (expected kernel.dmesg_restrict = 1)",
+      "remediation": "sysctl -w kernel.dmesg_restrict=1 && echo 'kernel.dmesg_restrict=1' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-1.6.5",
+      "title": "ptrace scope is restricted (kernel.yama.ptrace_scope)",
+      "category": "kernel_hardening",
+      "status": "PASS",
+      "rationale": "Unrestricted ptrace lets any process attach to and inspect the memory of any other process owned by the same user - including one holding decrypted secrets in memory - which Yama's ptrace_scope setting restricts to direct parent/child relationships by default.",
+      "evidence": "kernel.yama.ptrace_scope = 1",
+      "remediation": "sysctl -w kernel.yama.ptrace_scope=1 && echo 'kernel.yama.ptrace_scope=1' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-1.6.6",
+      "title": "Hardlink creation restrictions are enabled (fs.protected_hardlinks)",
+      "category": "kernel_hardening",
+      "status": "PASS",
+      "rationale": "Without this protection, a user can create a hardlink to a file they don't own (e.g. a SUID binary), which has historically enabled several local privilege-escalation and TOCTOU exploits.",
+      "evidence": "fs.protected_hardlinks = 1",
+      "remediation": "sysctl -w fs.protected_hardlinks=1 && echo 'fs.protected_hardlinks=1' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-1.6.7",
+      "title": "Symlink-following restrictions are enabled (fs.protected_symlinks)",
+      "category": "kernel_hardening",
+      "status": "PASS",
+      "rationale": "Without this protection, a privileged process following a symlink in a world-writable directory (e.g. /tmp) can be tricked into operating on a file the attacker chose - a classic symlink-attack privilege-escalation vector.",
+      "evidence": "fs.protected_symlinks = 1",
+      "remediation": "sysctl -w fs.protected_symlinks=1 && echo 'fs.protected_symlinks=1' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-1.6.8",
+      "title": "FIFO write restrictions are enabled (fs.protected_fifos)",
+      "category": "kernel_hardening",
+      "status": "PASS",
+      "rationale": "Without this protection, writing to a FIFO in a world-writable sticky directory that the process doesn't own can be abused similarly to the symlink attack this same kernel feature family closes off.",
+      "evidence": "fs.protected_fifos = 1",
+      "remediation": "sysctl -w fs.protected_fifos=2 && echo 'fs.protected_fifos=2' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-1.6.9",
+      "title": "Regular-file write restrictions are enabled (fs.protected_regular)",
+      "category": "kernel_hardening",
+      "status": "PASS",
+      "rationale": "Same class of protection as protected_fifos, extended to regular files opened for writing in a world-writable sticky directory by a process that isn't the file's owner.",
+      "evidence": "fs.protected_regular = 2",
+      "remediation": "sysctl -w fs.protected_regular=2 && echo 'fs.protected_regular=2' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-1.6.10",
+      "title": "Unprivileged BPF is disabled (kernel.unprivileged_bpf_disabled)",
+      "category": "kernel_hardening",
+      "status": "PASS",
+      "rationale": "The eBPF verifier has repeatedly been a source of local privilege-escalation bugs; disabling unprivileged access to bpf() removes that entire class of attack from unprivileged local users.",
+      "evidence": "kernel.unprivileged_bpf_disabled = 2",
+      "remediation": "sysctl -w kernel.unprivileged_bpf_disabled=1 && echo 'kernel.unprivileged_bpf_disabled=1' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-1.6.11",
+      "title": "JIT hardening is enabled for the BPF just-in-time compiler (net.core.bpf_jit_harden)",
+      "category": "kernel_hardening",
+      "status": "NOT_APPLICABLE",
+      "rationale": "Without JIT hardening, BPF-JIT-compiled code is more predictable and easier to use as a building block in a kernel exploit; hardening randomizes/constant-blinds the generated code.",
+      "evidence": "sysctl key net.core.bpf_jit_harden is not readable on this host/kernel.",
+      "remediation": "sysctl -w net.core.bpf_jit_harden=2 && echo 'net.core.bpf_jit_harden=2' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-1.6.12",
+      "title": "Performance event access is restricted (kernel.perf_event_paranoid)",
+      "category": "kernel_hardening",
+      "status": "PASS",
+      "rationale": "The perf_event subsystem has been used in multiple published local privilege-escalation exploits; restricting it to privileged users closes off that surface for unprivileged local accounts.",
+      "evidence": "kernel.perf_event_paranoid = 2",
+      "remediation": "sysctl -w kernel.perf_event_paranoid=2 && echo 'kernel.perf_event_paranoid=2' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-1.1.1.1",
+      "title": "Kernel module 'cramfs' (obsolete compressed ROM filesystem) is disabled",
+      "category": "kernel_modules",
+      "status": "FAIL",
+      "rationale": "The cramfs kernel module (obsolete compressed ROM filesystem) is rarely needed on a hardened server; leaving it loadable widens kernel attack surface for no operational benefit, especially for filesystem modules parsing untrusted removable media.",
+      "evidence": "module 'cramfs' (obsolete compressed ROM filesystem): currently loaded=False; no install/blacklist directive for 'cramfs' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads",
+      "remediation": "echo 'install cramfs /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist cramfs' >> /etc/modprobe.d/cis-hardening.conf && rmmod cramfs 2>/dev/null || true"
+    },
+    {
+      "id": "CIS-1.1.1.2",
+      "title": "Kernel module 'freevxfs' (legacy Veritas filesystem) is disabled",
+      "category": "kernel_modules",
+      "status": "FAIL",
+      "rationale": "The freevxfs kernel module (legacy Veritas filesystem) is rarely needed on a hardened server; leaving it loadable widens kernel attack surface for no operational benefit, especially for filesystem modules parsing untrusted removable media.",
+      "evidence": "module 'freevxfs' (legacy Veritas filesystem): currently loaded=False; no install/blacklist directive for 'freevxfs' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads",
+      "remediation": "echo 'install freevxfs /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist freevxfs' >> /etc/modprobe.d/cis-hardening.conf && rmmod freevxfs 2>/dev/null || true"
+    },
+    {
+      "id": "CIS-1.1.1.3",
+      "title": "Kernel module 'hfs' (legacy Apple HFS filesystem) is disabled",
+      "category": "kernel_modules",
+      "status": "FAIL",
+      "rationale": "The hfs kernel module (legacy Apple HFS filesystem) is rarely needed on a hardened server; leaving it loadable widens kernel attack surface for no operational benefit, especially for filesystem modules parsing untrusted removable media.",
+      "evidence": "module 'hfs' (legacy Apple HFS filesystem): currently loaded=False; no install/blacklist directive for 'hfs' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads",
+      "remediation": "echo 'install hfs /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist hfs' >> /etc/modprobe.d/cis-hardening.conf && rmmod hfs 2>/dev/null || true"
+    },
+    {
+      "id": "CIS-1.1.1.4",
+      "title": "Kernel module 'hfsplus' (legacy Apple HFS+ filesystem) is disabled",
+      "category": "kernel_modules",
+      "status": "FAIL",
+      "rationale": "The hfsplus kernel module (legacy Apple HFS+ filesystem) is rarely needed on a hardened server; leaving it loadable widens kernel attack surface for no operational benefit, especially for filesystem modules parsing untrusted removable media.",
+      "evidence": "module 'hfsplus' (legacy Apple HFS+ filesystem): currently loaded=False; no install/blacklist directive for 'hfsplus' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads",
+      "remediation": "echo 'install hfsplus /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist hfsplus' >> /etc/modprobe.d/cis-hardening.conf && rmmod hfsplus 2>/dev/null || true"
+    },
+    {
+      "id": "CIS-1.1.1.5",
+      "title": "Kernel module 'jffs2' (flash filesystem, unneeded on non-flash media) is disabled",
+      "category": "kernel_modules",
+      "status": "FAIL",
+      "rationale": "The jffs2 kernel module (flash filesystem, unneeded on non-flash media) is rarely needed on a hardened server; leaving it loadable widens kernel attack surface for no operational benefit, especially for filesystem modules parsing untrusted removable media.",
+      "evidence": "module 'jffs2' (flash filesystem, unneeded on non-flash media): currently loaded=False; no install/blacklist directive for 'jffs2' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads",
+      "remediation": "echo 'install jffs2 /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist jffs2' >> /etc/modprobe.d/cis-hardening.conf && rmmod jffs2 2>/dev/null || true"
+    },
+    {
+      "id": "CIS-1.1.1.6",
+      "title": "Kernel module 'squashfs' (read-only compressed filesystem, mainly used by snap/live media) is disabled",
+      "category": "kernel_modules",
+      "status": "FAIL",
+      "rationale": "The squashfs kernel module (read-only compressed filesystem, mainly used by snap/live media) is rarely needed on a hardened server; leaving it loadable widens kernel attack surface for no operational benefit, especially for filesystem modules parsing untrusted removable media.",
+      "evidence": "module 'squashfs' (read-only compressed filesystem, mainly used by snap/live media): currently loaded=False; no install/blacklist directive for 'squashfs' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads",
+      "remediation": "echo 'install squashfs /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist squashfs' >> /etc/modprobe.d/cis-hardening.conf && rmmod squashfs 2>/dev/null || true"
+    },
+    {
+      "id": "CIS-1.1.1.7",
+      "title": "Kernel module 'udf' (Universal Disk Format filesystem used by optical media) is disabled",
+      "category": "kernel_modules",
+      "status": "FAIL",
+      "rationale": "The udf kernel module (Universal Disk Format filesystem used by optical media) is rarely needed on a hardened server; leaving it loadable widens kernel attack surface for no operational benefit, especially for filesystem modules parsing untrusted removable media.",
+      "evidence": "module 'udf' (Universal Disk Format filesystem used by optical media): currently loaded=False; no install/blacklist directive for 'udf' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads",
+      "remediation": "echo 'install udf /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist udf' >> /etc/modprobe.d/cis-hardening.conf && rmmod udf 2>/dev/null || true"
+    },
+    {
+      "id": "CIS-1.1.1.8",
+      "title": "Kernel module 'usb-storage' (USB mass-storage driver, a common exfiltration/malware vector) is disabled",
+      "category": "kernel_modules",
+      "status": "FAIL",
+      "rationale": "The usb-storage kernel module (USB mass-storage driver, a common exfiltration/malware vector) is rarely needed on a hardened server; leaving it loadable widens kernel attack surface for no operational benefit, especially for filesystem modules parsing untrusted removable media.",
+      "evidence": "module 'usb-storage' (USB mass-storage driver, a common exfiltration/malware vector): currently loaded=False; no install/blacklist directive for 'usb-storage' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads",
+      "remediation": "echo 'install usb-storage /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist usb-storage' >> /etc/modprobe.d/cis-hardening.conf && rmmod usb-storage 2>/dev/null || true"
+    },
+    {
+      "id": "CIS-1.1.1.9",
+      "title": "Kernel module 'dccp' (Datagram Congestion Control Protocol, rarely used) is disabled",
+      "category": "kernel_modules",
+      "status": "FAIL",
+      "rationale": "The dccp kernel module (Datagram Congestion Control Protocol, rarely used) is rarely needed on a hardened server; leaving it loadable widens kernel attack surface for no operational benefit, especially for filesystem modules parsing untrusted removable media.",
+      "evidence": "module 'dccp' (Datagram Congestion Control Protocol, rarely used): currently loaded=False; no install/blacklist directive for 'dccp' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads",
+      "remediation": "echo 'install dccp /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist dccp' >> /etc/modprobe.d/cis-hardening.conf && rmmod dccp 2>/dev/null || true"
+    },
+    {
+      "id": "CIS-1.1.1.10",
+      "title": "Kernel module 'sctp' (Stream Control Transmission Protocol, rarely used) is disabled",
+      "category": "kernel_modules",
+      "status": "FAIL",
+      "rationale": "The sctp kernel module (Stream Control Transmission Protocol, rarely used) is rarely needed on a hardened server; leaving it loadable widens kernel attack surface for no operational benefit, especially for filesystem modules parsing untrusted removable media.",
+      "evidence": "module 'sctp' (Stream Control Transmission Protocol, rarely used): currently loaded=False; no install/blacklist directive for 'sctp' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads",
+      "remediation": "echo 'install sctp /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist sctp' >> /etc/modprobe.d/cis-hardening.conf && rmmod sctp 2>/dev/null || true"
+    },
+    {
+      "id": "CIS-1.1.1.11",
+      "title": "Kernel module 'rds' (Reliable Datagram Sockets protocol, rarely used) is disabled",
+      "category": "kernel_modules",
+      "status": "FAIL",
+      "rationale": "The rds kernel module (Reliable Datagram Sockets protocol, rarely used) is rarely needed on a hardened server; leaving it loadable widens kernel attack surface for no operational benefit, especially for filesystem modules parsing untrusted removable media.",
+      "evidence": "module 'rds' (Reliable Datagram Sockets protocol, rarely used): currently loaded=False; no install/blacklist directive for 'rds' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads",
+      "remediation": "echo 'install rds /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist rds' >> /etc/modprobe.d/cis-hardening.conf && rmmod rds 2>/dev/null || true"
+    },
+    {
+      "id": "CIS-1.1.1.12",
+      "title": "Kernel module 'tipc' (Transparent Inter-Process Communication protocol, rarely used) is disabled",
+      "category": "kernel_modules",
+      "status": "FAIL",
+      "rationale": "The tipc kernel module (Transparent Inter-Process Communication protocol, rarely used) is rarely needed on a hardened server; leaving it loadable widens kernel attack surface for no operational benefit, especially for filesystem modules parsing untrusted removable media.",
+      "evidence": "module 'tipc' (Transparent Inter-Process Communication protocol, rarely used): currently loaded=False; no install/blacklist directive for 'tipc' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads",
+      "remediation": "echo 'install tipc /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist tipc' >> /etc/modprobe.d/cis-hardening.conf && rmmod tipc 2>/dev/null || true"
+    },
+    {
+      "id": "CIS-1.1.1.13",
+      "title": "Kernel module 'firewire-core' (FireWire core driver, historically a DMA-attack vector) is disabled",
+      "category": "kernel_modules",
+      "status": "FAIL",
+      "rationale": "The firewire-core kernel module (FireWire core driver, historically a DMA-attack vector) is rarely needed on a hardened server; leaving it loadable widens kernel attack surface for no operational benefit, especially for filesystem modules parsing untrusted removable media.",
+      "evidence": "module 'firewire-core' (FireWire core driver, historically a DMA-attack vector): currently loaded=False; no install/blacklist directive for 'firewire-core' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads",
+      "remediation": "echo 'install firewire-core /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist firewire-core' >> /etc/modprobe.d/cis-hardening.conf && rmmod firewire-core 2>/dev/null || true"
+    },
+    {
+      "id": "CIS-1.1.1.14",
+      "title": "Kernel module 'bluetooth' (Bluetooth stack, unneeded on a headless server) is disabled",
+      "category": "kernel_modules",
+      "status": "FAIL",
+      "rationale": "The bluetooth kernel module (Bluetooth stack, unneeded on a headless server) is rarely needed on a hardened server; leaving it loadable widens kernel attack surface for no operational benefit, especially for filesystem modules parsing untrusted removable media.",
+      "evidence": "module 'bluetooth' (Bluetooth stack, unneeded on a headless server): currently loaded=False; no install/blacklist directive for 'bluetooth' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads",
+      "remediation": "echo 'install bluetooth /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist bluetooth' >> /etc/modprobe.d/cis-hardening.conf && rmmod bluetooth 2>/dev/null || true"
+    },
+    {
       "id": "CIS-4.2.1",
       "title": "auditd is installed and enabled",
       "category": "logging",
@@ -167,6 +941,60 @@
       "rationale": "Without an allow-list, every local user can schedule their own cron jobs by default, which is a common persistence/privilege-escalation vector once an account is compromised.",
       "evidence": "/etc/cron.allow exists=False, /etc/cron.deny exists=False (expected cron.allow to exist and cron.deny to not exist)",
       "remediation": "touch /etc/cron.allow && chmod 600 /etc/cron.allow && rm -f /etc/cron.deny   # list only trusted usernames, one per line, in cron.allow"
+    },
+    {
+      "id": "CIS-1.5.1",
+      "title": "A mandatory access control system (AppArmor) is installed",
+      "category": "mac",
+      "status": "PASS",
+      "rationale": "Discretionary Unix permissions alone don't confine what a compromised process can do; a MAC system like AppArmor restricts processes to a defined profile even if they're running as root.",
+      "evidence": "AppArmor installed: True; SELinux installed: False",
+      "remediation": "apt install apparmor apparmor-utils && systemctl --now enable apparmor"
+    },
+    {
+      "id": "CIS-1.5.2",
+      "title": "AppArmor is enabled at boot",
+      "category": "mac",
+      "status": "FAIL",
+      "rationale": "Installing AppArmor without it being active at boot provides no protection - the kernel needs apparmor=1 security=apparmor (or the distro default) to actually load and enforce profiles.",
+      "evidence": "/sys/module/apparmor/parameters/enabled = 'N'",
+      "remediation": "Ensure the running kernel was booted with apparmor enabled (Ubuntu kernels default to this; verify with 'cat /sys/module/apparmor/parameters/enabled')."
+    },
+    {
+      "id": "CIS-1.5.3",
+      "title": "AppArmor profiles are loaded",
+      "category": "mac",
+      "status": "NOT_APPLICABLE",
+      "rationale": "An enabled but empty AppArmor install (no profiles loaded) provides no actual confinement - profiles have to be loaded for the framework to do anything.",
+      "evidence": "`aa-status`: apparmor module is loaded. (could not determine profile count, likely needs root)",
+      "remediation": "apt install apparmor-profiles apparmor-profiles-extra && systemctl reload apparmor"
+    },
+    {
+      "id": "CIS-1.5.4",
+      "title": "No AppArmor profiles are running in complain (non-enforcing) mode",
+      "category": "mac",
+      "status": "NOT_APPLICABLE",
+      "rationale": "A profile in complain mode only logs policy violations instead of blocking them - useful while tuning a new profile, but any profile left in complain mode long-term provides no actual confinement.",
+      "evidence": "`aa-status` failed: apparmor filesystem is not mounted. (likely needs root).",
+      "remediation": "aa-enforce /etc/apparmor.d/<profile>  # for each profile reported still in complain mode"
+    },
+    {
+      "id": "CIS-1.5.5",
+      "title": "SELinux and AppArmor are not both installed",
+      "category": "mac",
+      "status": "PASS",
+      "rationale": "Running two mandatory access control frameworks side by side is unsupported and typically means one was installed by accident (e.g. as a stray dependency) - it doesn't add protection and can cause confusing policy conflicts.",
+      "evidence": "AppArmor installed: True; SELinux installed: False",
+      "remediation": "Remove whichever MAC system your distribution doesn't use by default (apt purge selinux-basics on Ubuntu, or the AppArmor packages on RHEL-family systems)."
+    },
+    {
+      "id": "CIS-1.5.6",
+      "title": "SELinux is not set to disabled (on systems where it is installed)",
+      "category": "mac",
+      "status": "NOT_APPLICABLE",
+      "rationale": "On a distribution that ships SELinux, having it present but explicitly disabled is worse than not having it at all - it gives a false sense of protection while providing none.",
+      "evidence": "SELinux is not installed on this host (this is an AppArmor-based distribution).",
+      "remediation": "Set SELINUX=enforcing (or at minimum permissive) in /etc/selinux/config, then reboot."
     },
     {
       "id": "CIS-3.1.1",
@@ -221,6 +1049,456 @@
       "rationale": "A host-based firewall is a baseline defense-in-depth control even behind network firewalls/security groups - without one, every listening service on the host is directly reachable from anything that can route to it.",
       "evidence": "No firewall tool found on PATH (checked ufw, nft, iptables) - no host-based firewall is installed.",
       "remediation": "Install and enable one firewall: 'apt install ufw && ufw default deny incoming && ufw enable' is the simplest option for a single host."
+    },
+    {
+      "id": "CIS-2.2.1",
+      "title": "autofs is not installed or active",
+      "category": "network_services",
+      "status": "PASS",
+      "rationale": "autofs automatically mounts removable/network filesystems on access - convenient but rarely needed on a hardened server and expands the set of filesystems that can be attached without explicit administrator action.",
+      "evidence": "package 'autofs' installed=False; unit 'autofs' active=False",
+      "remediation": "systemctl disable --now autofs; apt purge autofs"
+    },
+    {
+      "id": "CIS-2.2.2",
+      "title": "avahi-daemon is not installed or active",
+      "category": "network_services",
+      "status": "PASS",
+      "rationale": "Avahi advertises this host and its services on the local network via mDNS (zero-config networking) - useful on a desktop, unnecessary network exposure on a server.",
+      "evidence": "package 'avahi-daemon' installed=False; unit 'avahi-daemon' active=False",
+      "remediation": "systemctl disable --now avahi-daemon; apt purge avahi-daemon"
+    },
+    {
+      "id": "CIS-2.2.3",
+      "title": "A DHCP server (isc-dhcp-server) is not installed or active",
+      "category": "network_services",
+      "status": "PASS",
+      "rationale": "Running a DHCP server on a host that isn't meant to be one can hand out conflicting or malicious network configuration to every other host on the segment.",
+      "evidence": "package 'isc-dhcp-server' installed=False; unit 'isc-dhcp-server' active=False",
+      "remediation": "systemctl disable --now isc-dhcp-server; apt purge isc-dhcp-server"
+    },
+    {
+      "id": "CIS-2.2.4",
+      "title": "A DNS server (bind9) is not installed or active",
+      "category": "network_services",
+      "status": "PASS",
+      "rationale": "An unintended authoritative/recursive DNS server is a common misconfiguration that can be abused for DNS amplification DDoS or cache poisoning if it's not the host's actual job.",
+      "evidence": "package 'bind9' installed=False; unit 'bind9' active=False",
+      "remediation": "systemctl disable --now bind9; apt purge bind9"
+    },
+    {
+      "id": "CIS-2.2.5",
+      "title": "dnsmasq is not installed or active",
+      "category": "network_services",
+      "status": "PASS",
+      "rationale": "dnsmasq provides combined DHCP/DNS services - unnecessary attack surface unless this host is specifically deployed as a network gateway/router.",
+      "evidence": "package 'dnsmasq' installed=False; unit 'dnsmasq' active=False",
+      "remediation": "systemctl disable --now dnsmasq; apt purge dnsmasq"
+    },
+    {
+      "id": "CIS-2.2.6",
+      "title": "Samba (smbd) is not installed or active",
+      "category": "network_services",
+      "status": "PASS",
+      "rationale": "SMB file sharing has a long history of remote-exploitable vulnerabilities (e.g. EternalBlue); it shouldn't run unless this host is specifically a file server.",
+      "evidence": "package 'samba' installed=False; unit 'smbd' active=False",
+      "remediation": "systemctl disable --now smbd; apt purge samba"
+    },
+    {
+      "id": "CIS-2.2.7",
+      "title": "An FTP server (vsftpd) is not installed or active",
+      "category": "network_services",
+      "status": "PASS",
+      "rationale": "FTP transmits credentials in cleartext by default and has a long-available encrypted replacement (SFTP over SSH) - an FTP server shouldn't be running unless there's a specific legacy requirement.",
+      "evidence": "package 'vsftpd' installed=False; unit 'vsftpd' active=False",
+      "remediation": "systemctl disable --now vsftpd; apt purge vsftpd"
+    },
+    {
+      "id": "CIS-2.2.8",
+      "title": "An IMAP/POP3 server (dovecot) is not installed or active",
+      "category": "network_services",
+      "status": "PASS",
+      "rationale": "A mail retrieval server is a common target for credential-stuffing and shouldn't be running on a host that isn't specifically a mail server.",
+      "evidence": "package 'dovecot-core' installed=False; unit 'dovecot' active=False",
+      "remediation": "systemctl disable --now dovecot; apt purge dovecot-core"
+    },
+    {
+      "id": "CIS-2.2.9",
+      "title": "An NFS server is not installed or active",
+      "category": "network_services",
+      "status": "PASS",
+      "rationale": "NFS shares filesystem access over the network, often with weak host-based trust; it shouldn't run unless this host is specifically a file server.",
+      "evidence": "package 'nfs-kernel-server' installed=False; unit 'nfs-server' active=False",
+      "remediation": "systemctl disable --now nfs-server; apt purge nfs-kernel-server"
+    },
+    {
+      "id": "CIS-2.2.10",
+      "title": "rpcbind is not installed or active",
+      "category": "network_services",
+      "status": "PASS",
+      "rationale": "rpcbind (the RPC portmapper) is required by NFS/NIS and has historically been abused for DDoS amplification; it has no reason to run on a host that isn't serving RPC-based services.",
+      "evidence": "package 'rpcbind' installed=False; unit 'rpcbind' active=False",
+      "remediation": "systemctl disable --now rpcbind; apt purge rpcbind"
+    },
+    {
+      "id": "CIS-2.2.11",
+      "title": "A print server (CUPS) is not installed or active",
+      "category": "network_services",
+      "status": "PASS",
+      "rationale": "A network print server is unnecessary attack surface on a system that isn't specifically a print server, and CUPS has had multiple remote vulnerabilities historically.",
+      "evidence": "package 'cups' installed=False; unit 'cups' active=False",
+      "remediation": "systemctl disable --now cups; apt purge cups"
+    },
+    {
+      "id": "CIS-2.2.12",
+      "title": "The rsync service (daemon mode) is not installed or active",
+      "category": "network_services",
+      "status": "PASS",
+      "rationale": "Running rsync in standalone daemon mode (rather than over SSH) can expose file transfer with weak or no authentication if misconfigured.",
+      "evidence": "package 'rsync' installed=True; unit 'rsync' active=False (installed but not active - not currently a listening risk)",
+      "remediation": "systemctl disable --now rsync; apt purge rsync"
+    },
+    {
+      "id": "CIS-2.2.13",
+      "title": "An SNMP server (snmpd) is not installed or active",
+      "category": "network_services",
+      "status": "PASS",
+      "rationale": "SNMP, especially with default/weak community strings, can leak detailed system information or allow remote configuration changes; it shouldn't run unless network monitoring specifically requires it.",
+      "evidence": "package 'snmpd' installed=False; unit 'snmpd' active=False",
+      "remediation": "systemctl disable --now snmpd; apt purge snmpd"
+    },
+    {
+      "id": "CIS-2.2.14",
+      "title": "A web proxy server (squid) is not installed or active",
+      "category": "network_services",
+      "status": "PASS",
+      "rationale": "An unintended open or misconfigured proxy can be abused to relay traffic and obscure an attacker's origin, or to bypass network egress controls.",
+      "evidence": "package 'squid' installed=False; unit 'squid' active=False",
+      "remediation": "systemctl disable --now squid; apt purge squid"
+    },
+    {
+      "id": "CIS-2.2.15",
+      "title": "A web server (apache2) is not installed or active",
+      "category": "network_services",
+      "status": "PASS",
+      "rationale": "A web server is a large, frequently-targeted attack surface that shouldn't run unless this host is specifically deployed to serve web traffic.",
+      "evidence": "package 'apache2' installed=False; unit 'apache2' active=False",
+      "remediation": "systemctl disable --now apache2; apt purge apache2"
+    },
+    {
+      "id": "CIS-2.2.16",
+      "title": "A web server (nginx) is not installed or active",
+      "category": "network_services",
+      "status": "PASS",
+      "rationale": "Same rationale as Apache: an unintended web server is unnecessary attack surface on a non-web-serving host.",
+      "evidence": "package 'nginx' installed=False; unit 'nginx' active=False",
+      "remediation": "systemctl disable --now nginx; apt purge nginx"
+    },
+    {
+      "id": "CIS-2.2.17",
+      "title": "xinetd is not installed or active",
+      "category": "network_services",
+      "status": "PASS",
+      "rationale": "xinetd exists to launch legacy inetd-style services on demand; its presence usually means one of those legacy services is also present, widening attack surface for no benefit on a modern host.",
+      "evidence": "package 'xinetd' installed=False; unit 'xinetd' active=False",
+      "remediation": "systemctl disable --now xinetd; apt purge xinetd"
+    },
+    {
+      "id": "CIS-2.2.18",
+      "title": "The X Window System is not installed",
+      "category": "network_services",
+      "status": "PASS",
+      "rationale": "A headless server has no legitimate need for a graphical display server; its presence increases the local attack surface (X has a long history of local privilege-escalation issues) for no operational benefit.",
+      "evidence": "xserver-xorg-core installed or Xorg binary present: False",
+      "remediation": "apt purge xserver-xorg*"
+    },
+    {
+      "id": "CIS-2.3.1",
+      "title": "The mail transfer agent is configured for local-only mail delivery",
+      "category": "network_services",
+      "status": "NOT_APPLICABLE",
+      "rationale": "A general-purpose host usually only needs to send mail locally (e.g. cron job output) and receive none from the network; an MTA listening on external interfaces is unnecessary attack surface and a potential open-relay risk if misconfigured.",
+      "evidence": "postfix is not installed on this host.",
+      "remediation": "Set 'inet_interfaces = loopback-only' in /etc/postfix/main.cf and systemctl restart postfix"
+    },
+    {
+      "id": "CIS-2.4.1",
+      "title": "A NIS client (ypbind) is not installed",
+      "category": "network_services",
+      "status": "PASS",
+      "rationale": "NIS (Network Information Service) transmits authentication data, including password hashes, in cleartext across the network - even acting only as a client exposes the host to a rogue NIS server on the same segment.",
+      "evidence": "nis package installed or ypbind binary present: False",
+      "remediation": "apt purge nis"
+    },
+    {
+      "id": "CIS-3.2.3",
+      "title": "Source-routed IPv4 packets are not accepted (all interfaces)",
+      "category": "network",
+      "status": "PASS",
+      "rationale": "Source routing lets the packet's sender dictate its path through the network, bypassing normal routing decisions - a classic technique for evading network-path-based security controls.",
+      "evidence": "net.ipv4.conf.all.accept_source_route = 0",
+      "remediation": "sysctl -w net.ipv4.conf.all.accept_source_route=0 && echo 'net.ipv4.conf.all.accept_source_route=0' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-3.2.5",
+      "title": "Source-routed IPv4 packets are not accepted (default for new interfaces)",
+      "category": "network",
+      "status": "PASS",
+      "rationale": "Same rationale as the 'all' variant, applied to the default template new interfaces inherit, so a hot-plugged interface doesn't silently revert to accepting source-routed packets.",
+      "evidence": "net.ipv4.conf.default.accept_source_route = 0",
+      "remediation": "sysctl -w net.ipv4.conf.default.accept_source_route=0 && echo 'net.ipv4.conf.default.accept_source_route=0' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-3.2.6",
+      "title": "ICMP redirects are not accepted (default for new interfaces)",
+      "category": "network",
+      "status": "FAIL",
+      "rationale": "Same MITM rationale as the 'all' variant (CIS-3.2.1), applied to the default template new interfaces inherit.",
+      "evidence": "net.ipv4.conf.default.accept_redirects = 1 (expected net.ipv4.conf.default.accept_redirects = 0)",
+      "remediation": "sysctl -w net.ipv4.conf.default.accept_redirects=0 && echo 'net.ipv4.conf.default.accept_redirects=0' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-3.2.7",
+      "title": "Sending ICMP redirects is disabed (default for new interfaces)",
+      "category": "network",
+      "status": "FAIL",
+      "rationale": "Same rationale as the 'all' variant (CIS-3.2.2), applied to the default template new interfaces inherit.",
+      "evidence": "net.ipv4.conf.default.send_redirects = 1 (expected net.ipv4.conf.default.send_redirects = 0)",
+      "remediation": "sysctl -w net.ipv4.conf.default.send_redirects=0 && echo 'net.ipv4.conf.default.send_redirects=0' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-3.2.8",
+      "title": "Secure ICMP redirects are not accepted (all interfaces)",
+      "category": "network",
+      "status": "FAIL",
+      "rationale": "'Secure' redirects (from hosts already listed as gateways) are still redirects an attacker on-path could spoof; disabling them removes that residual MITM surface entirely.",
+      "evidence": "net.ipv4.conf.all.secure_redirects = 1 (expected net.ipv4.conf.all.secure_redirects = 0)",
+      "remediation": "sysctl -w net.ipv4.conf.all.secure_redirects=0 && echo 'net.ipv4.conf.all.secure_redirects=0' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-3.2.9",
+      "title": "Secure ICMP redirects are not accepted (default for new interfaces)",
+      "category": "network",
+      "status": "FAIL",
+      "rationale": "Same rationale as the 'all' variant, applied to the default template new interfaces inherit.",
+      "evidence": "net.ipv4.conf.default.secure_redirects = 1 (expected net.ipv4.conf.default.secure_redirects = 0)",
+      "remediation": "sysctl -w net.ipv4.conf.default.secure_redirects=0 && echo 'net.ipv4.conf.default.secure_redirects=0' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-3.2.10",
+      "title": "Suspicious (martian) packets are logged (all interfaces)",
+      "category": "network",
+      "status": "FAIL",
+      "rationale": "Martian packets - ones with impossible source addresses for the interface they arrived on - are a strong spoofing/misconfiguration signal; logging them gives visibility that's otherwise silently dropped and forgotten.",
+      "evidence": "net.ipv4.conf.all.log_martians = 0 (expected net.ipv4.conf.all.log_martians = 1)",
+      "remediation": "sysctl -w net.ipv4.conf.all.log_martians=1 && echo 'net.ipv4.conf.all.log_martians=1' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-3.2.11",
+      "title": "Suspicious (martian) packets are logged (default for new interfaces)",
+      "category": "network",
+      "status": "FAIL",
+      "rationale": "Same rationale as the 'all' variant, applied to the default template new interfaces inherit.",
+      "evidence": "net.ipv4.conf.default.log_martians = 0 (expected net.ipv4.conf.default.log_martians = 1)",
+      "remediation": "sysctl -w net.ipv4.conf.default.log_martians=1 && echo 'net.ipv4.conf.default.log_martians=1' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-3.2.12",
+      "title": "Broadcast ICMP requests are ignored",
+      "category": "network",
+      "status": "PASS",
+      "rationale": "Responding to broadcast ICMP echo requests lets this host be used as an amplifier in a Smurf-style DDoS attack against a spoofed victim address.",
+      "evidence": "net.ipv4.icmp_echo_ignore_broadcasts = 1",
+      "remediation": "sysctl -w net.ipv4.icmp_echo_ignore_broadcasts=1 && echo 'net.ipv4.icmp_echo_ignore_broadcasts=1' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-3.2.13",
+      "title": "Bogus ICMP error responses are ignored",
+      "category": "network",
+      "status": "PASS",
+      "rationale": "Some routers send non-RFC-compliant ICMP error responses that would otherwise flood the kernel log with unnecessary warnings.",
+      "evidence": "net.ipv4.icmp_ignore_bogus_error_responses = 1",
+      "remediation": "sysctl -w net.ipv4.icmp_ignore_bogus_error_responses=1 && echo 'net.ipv4.icmp_ignore_bogus_error_responses=1' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-3.2.14",
+      "title": "Reverse path filtering is enabled (default for new interfaces)",
+      "category": "network",
+      "status": "PASS",
+      "rationale": "Same spoofing-mitigation rationale as CIS-3.2.4, applied to the default template new interfaces inherit.",
+      "evidence": "net.ipv4.conf.default.rp_filter = 2",
+      "remediation": "sysctl -w net.ipv4.conf.default.rp_filter=1 or 2 && echo 'net.ipv4.conf.default.rp_filter=1 or 2' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-3.2.15",
+      "title": "IPv6 router advertisements are not accepted (all interfaces)",
+      "category": "network",
+      "status": "PASS",
+      "rationale": "Accepting router advertisements lets any host on the local network silently reconfigure this host's IPv6 default route and DNS servers - a MITM/traffic-redirection technique analogous to rogue DHCP.",
+      "evidence": "net.ipv6.conf.all.accept_ra = 0",
+      "remediation": "sysctl -w net.ipv6.conf.all.accept_ra=0 && echo 'net.ipv6.conf.all.accept_ra=0' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-3.2.16",
+      "title": "IPv6 router advertisements are not accepted (default for new interfaces)",
+      "category": "network",
+      "status": "PASS",
+      "rationale": "Same rationale as the 'all' variant, applied to the default template new interfaces inherit.",
+      "evidence": "net.ipv6.conf.default.accept_ra = 0",
+      "remediation": "sysctl -w net.ipv6.conf.default.accept_ra=0 && echo 'net.ipv6.conf.default.accept_ra=0' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-3.2.17",
+      "title": "Source-routed IPv6 packets are not accepted (all interfaces)",
+      "category": "network",
+      "status": "PASS",
+      "rationale": "Same source-routing rationale as the IPv4 checks, for IPv6.",
+      "evidence": "net.ipv6.conf.all.accept_source_route = 0",
+      "remediation": "sysctl -w net.ipv6.conf.all.accept_source_route=0 && echo 'net.ipv6.conf.all.accept_source_route=0' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-3.2.18",
+      "title": "Source-routed IPv6 packets are not accepted (default for new interfaces)",
+      "category": "network",
+      "status": "PASS",
+      "rationale": "Same rationale as the 'all' variant, applied to the default template new interfaces inherit.",
+      "evidence": "net.ipv6.conf.default.accept_source_route = 0",
+      "remediation": "sysctl -w net.ipv6.conf.default.accept_source_route=0 && echo 'net.ipv6.conf.default.accept_source_route=0' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-2.5.1",
+      "title": "A time synchronization daemon (chrony or systemd-timesyncd) is installed",
+      "category": "time_sync",
+      "status": "PASS",
+      "rationale": "Without an active time sync daemon, the system clock drifts over time (sometimes minutes to hours per week), breaking TLS certificate validation, log correlation across hosts, and TOTP-based MFA.",
+      "evidence": "chronyd present: True; timedatectl present: True",
+      "remediation": "apt install chrony && systemctl --now enable chrony"
+    },
+    {
+      "id": "CIS-2.5.2",
+      "title": "The time synchronization service is active and enabled",
+      "category": "time_sync",
+      "status": "PASS",
+      "rationale": "Installing a time sync daemon without it actually running provides no protection - the clock will still drift.",
+      "evidence": "chrony: active; chronyd: active; systemd-timesyncd: inactive",
+      "remediation": "systemctl --now enable chrony  (or systemd-timesyncd, whichever is installed)"
+    },
+    {
+      "id": "CIS-2.5.3",
+      "title": "chrony is configured with at least one explicit time source",
+      "category": "time_sync",
+      "status": "FAIL",
+      "rationale": "chrony ships with no default servers on some distributions; without an explicit 'server'/'pool' directive it has nothing to synchronize against even though the daemon itself is running.",
+      "evidence": "chrony.conf time source directives: (none)",
+      "remediation": "Add at least one 'pool <ntp-pool> iburst' or 'server <ntp-server> iburst' line to /etc/chrony/chrony.conf, then systemctl restart chrony"
+    },
+    {
+      "id": "CIS-2.5.4",
+      "title": "systemd-timesyncd has an NTP server configured (if in use as the sync daemon)",
+      "category": "time_sync",
+      "status": "NOT_APPLICABLE",
+      "rationale": "Like chrony, systemd-timesyncd needs at least one NTP server configured (or falls back to distro-default servers, which is fine, but a config with an empty NTP= that overrides the default with nothing is a real misconfiguration).",
+      "evidence": "/etc/systemd/timesyncd.conf does not exist on this host.",
+      "remediation": "Set 'NTP=<server>' in /etc/systemd/timesyncd.conf, then systemctl restart systemd-timesyncd"
+    },
+    {
+      "id": "CIS-2.5.5",
+      "title": "The system clock is currently synchronized",
+      "category": "time_sync",
+      "status": "PASS",
+      "rationale": "A time sync daemon can be installed and 'active' yet still not have successfully synchronized (e.g. no network route to any configured server) - checking the live synchronized state catches that gap.",
+      "evidence": "`timedatectl show -p NTPSynchronized --value`: yes",
+      "remediation": "Verify network connectivity to the configured NTP server(s); check `chronyc tracking` or `timedatectl show` for the specific failure."
+    },
+    {
+      "id": "CIS-2.5.6",
+      "title": "Only one time synchronization daemon is active",
+      "category": "time_sync",
+      "status": "PASS",
+      "rationale": "Running both chrony and systemd-timesyncd simultaneously means two daemons compete to adjust the same clock, which can cause erratic time jumps instead of smooth synchronization.",
+      "evidence": "chrony active: True; systemd-timesyncd active: False",
+      "remediation": "systemctl disable --now systemd-timesyncd  # if chrony is the intended daemon, or vice versa"
+    },
+    {
+      "id": "CIS-1.2.1",
+      "title": "APT is not configured to allow unauthenticated (unsigned) packages",
+      "category": "package_management",
+      "status": "PASS",
+      "rationale": "Disabling GPG signature verification lets APT install packages that weren't signed by a trusted repository key - a direct path for a compromised mirror or MITM to plant malicious packages.",
+      "evidence": "No AllowUnauthenticated override found in 10 file(s) under /etc/apt/apt.conf.d (GPG signature checking is on by default).",
+      "remediation": "Remove any 'APT::Get::AllowUnauthenticated \"true\";' lines from /etc/apt/apt.conf.d/*, GPG checking is on by default otherwise."
+    },
+    {
+      "id": "CIS-1.2.2",
+      "title": "No plain-HTTP (unencrypted) APT repository sources are configured",
+      "category": "package_management",
+      "status": "FAIL",
+      "rationale": "An http:// (not https://) repository source lets a network attacker tamper with package downloads in transit; APT's GPG check mitigates but does not fully eliminate the risk of an unauthenticated transport, so both matter.",
+      "evidence": "2 plain-http:// source line(s) found: /etc/apt/sources.list.d/ubuntu.sources: URIs: http://archive.ubuntu.com/ubuntu/ | /etc/apt/sources.list.d/ubuntu.sources: URIs: http://security.ubuntu.com/ubuntu/",
+      "remediation": "Edit /etc/apt/sources.list and /etc/apt/sources.list.d/* to use https:// mirror URLs."
+    },
+    {
+      "id": "CIS-1.2.3",
+      "title": "dpkg reports no broken or half-configured packages",
+      "category": "package_management",
+      "status": "PASS",
+      "rationale": "Packages stuck in a broken/half-installed state can leave security-relevant files (e.g. a postinst hardening script) partially applied, and often indicate a previous update was interrupted.",
+      "evidence": "`dpkg --audit`: (no output)",
+      "remediation": "dpkg --configure -a  # then investigate/resolve any package that still fails"
+    },
+    {
+      "id": "CIS-1.3.1",
+      "title": "A file integrity checking tool (AIDE) is installed",
+      "category": "package_management",
+      "status": "FAIL",
+      "rationale": "A file-integrity tool creates a baseline of cryptographic hashes for system files and detects unauthorized changes - without it, an intruder who plants a trojaned binary can persist undetected indefinitely.",
+      "evidence": "No aide binary found on PATH or at /usr/sbin/aide.",
+      "remediation": "apt install aide aide-common && aideinit"
+    },
+    {
+      "id": "CIS-1.3.2",
+      "title": "Filesystem integrity checks are scheduled regularly",
+      "category": "package_management",
+      "status": "FAIL",
+      "rationale": "Installing AIDE without scheduling regular checks means nothing actually compares the live filesystem against the baseline - the tool only provides protection if it's actually run periodically.",
+      "evidence": "No AIDE cron job (checked /etc/cron.d/aide, /etc/cron.daily/aide) and aidecheck.timer is not enabled (systemctl is-enabled: not-found).",
+      "remediation": "Enable the aide systemd timer (systemctl --now enable aidecheck.timer) or add a cron.d entry that runs 'aide --check' daily."
+    },
+    {
+      "id": "CIS-1.4.1",
+      "title": "Bootloader configuration file permissions are restrictive",
+      "category": "package_management",
+      "status": "NOT_APPLICABLE",
+      "rationale": "The bootloader config can contain a plaintext password hash and controls what kernel/parameters are booted; if it's readable or writable by non-root users, boot-time security settings could be tampered with or a hash could be cracked offline.",
+      "evidence": "Neither /boot/grub/grub.cfg nor /boot/grub2/grub.cfg exists (no GRUB bootloader found).",
+      "remediation": "chown root:root /boot/grub/grub.cfg && chmod 600 /boot/grub/grub.cfg"
+    },
+    {
+      "id": "CIS-1.4.2",
+      "title": "Bootloader is password protected",
+      "category": "package_management",
+      "status": "NOT_APPLICABLE",
+      "rationale": "Without a bootloader password, anyone with physical/console access can edit boot parameters (e.g. append init=/bin/sh) to bypass authentication entirely.",
+      "evidence": "Neither /boot/grub/grub.cfg nor /boot/grub2/grub.cfg exists (no GRUB bootloader found).",
+      "remediation": "Run 'grub-mkpasswd-pbkdf2' and add a 'set superusers' / 'password_pbkdf2' block to /etc/grub.d/40_custom, then update-grub."
+    },
+    {
+      "id": "CIS-1.7.1",
+      "title": "Unattended-upgrades is configured to automatically reboot when required",
+      "category": "package_management",
+      "status": "FAIL",
+      "rationale": "Some security updates (kernel, glibc) only take effect after a reboot; without automatic reboots, a host can silently run vulnerable code for months after being 'patched' on disk.",
+      "evidence": "Automatic-Reboot setting present and true: False",
+      "remediation": "Set 'Unattended-Upgrade::Automatic-Reboot \"true\";' in /etc/apt/apt.conf.d/50unattended-upgrades"
+    },
+    {
+      "id": "CIS-1.7.2",
+      "title": "Unattended-upgrades removes unused dependencies after upgrading",
+      "category": "package_management",
+      "status": "FAIL",
+      "rationale": "Leaving unused package dependencies installed after an upgrade grows the attack surface with software nothing on the system actually needs anymore.",
+      "evidence": "Remove-Unused-Dependencies setting present and true: False",
+      "remediation": "Set 'Unattended-Upgrade::Remove-Unused-Dependencies \"true\";' in /etc/apt/apt.conf.d/50unattended-upgrades"
     },
     {
       "id": "CIS-2.1.1",
@@ -320,6 +1598,132 @@
       "rationale": "A pre-authentication banner (e.g. an authorized-use warning) is often a legal prerequisite for prosecuting unauthorized access and signals that the system is monitored.",
       "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
       "remediation": "Create /etc/issue.net with a warning banner, then in /etc/ssh/sshd_config set 'Banner /etc/issue.net' and systemctl reload sshd"
+    },
+    {
+      "id": "CIS-5.2.12",
+      "title": "SSH LoginGraceTime is 60 seconds or less",
+      "category": "ssh",
+      "status": "NOT_APPLICABLE",
+      "rationale": "A long login grace period lets an attacker hold open many half-authenticated connections simultaneously, tying up server resources in a slow-loris-style denial of service.",
+      "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
+      "remediation": "In /etc/ssh/sshd_config set 'LoginGraceTime 60' then systemctl reload sshd"
+    },
+    {
+      "id": "CIS-5.2.13",
+      "title": "SSH MaxSessions is 10 or less",
+      "category": "ssh",
+      "status": "NOT_APPLICABLE",
+      "rationale": "A high MaxSessions lets a single authenticated connection multiplex an excessive number of shell/forwarding sessions, amplifying the impact of one compromised credential.",
+      "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
+      "remediation": "In /etc/ssh/sshd_config set 'MaxSessions 10' then systemctl reload sshd"
+    },
+    {
+      "id": "CIS-5.2.14",
+      "title": "SSH ClientAliveInterval is configured (nonzero, at most 900 seconds)",
+      "category": "ssh",
+      "status": "NOT_APPLICABLE",
+      "rationale": "Without a ClientAliveInterval, a dropped or abandoned connection can leave an authenticated session open indefinitely - this setting makes sshd probe and eventually close idle/dead sessions.",
+      "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
+      "remediation": "In /etc/ssh/sshd_config set 'ClientAliveInterval 300' then systemctl reload sshd"
+    },
+    {
+      "id": "CIS-5.2.15",
+      "title": "SSH ClientAliveCountMax is 3 or less",
+      "category": "ssh",
+      "status": "NOT_APPLICABLE",
+      "rationale": "Combined with ClientAliveInterval, a low CountMax bounds how long an unresponsive session is kept open before sshd disconnects it.",
+      "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
+      "remediation": "In /etc/ssh/sshd_config set 'ClientAliveCountMax 3' then systemctl reload sshd"
+    },
+    {
+      "id": "CIS-5.2.17",
+      "title": "SSH AllowTcpForwarding is disabled",
+      "category": "ssh",
+      "status": "NOT_APPLICABLE",
+      "rationale": "TCP forwarding lets an SSH session tunnel arbitrary additional traffic through the server - useful for legitimate tunneling, but it also lets a compromised account pivot into networks the server can reach.",
+      "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
+      "remediation": "In /etc/ssh/sshd_config set 'AllowTcpForwarding no' then systemctl reload sshd"
+    },
+    {
+      "id": "CIS-5.2.18",
+      "title": "SSH PermitUserEnvironment is disabled",
+      "category": "ssh",
+      "status": "NOT_APPLICABLE",
+      "rationale": "Allowing users to set arbitrary environment variables at login (via ~/.ssh/environment) can be abused to override LD_PRELOAD or PATH for subsequently-invoked privileged helper programs.",
+      "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
+      "remediation": "In /etc/ssh/sshd_config set 'PermitUserEnvironment no' then systemctl reload sshd"
+    },
+    {
+      "id": "CIS-5.2.19",
+      "title": "SSH IgnoreRhosts is enabled",
+      "category": "ssh",
+      "status": "NOT_APPLICABLE",
+      "rationale": "rhosts-based trust has no cryptographic authentication at all; IgnoreRhosts ensures sshd never honors ~/.rhosts or /etc/hosts.equiv even if one is somehow present.",
+      "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
+      "remediation": "In /etc/ssh/sshd_config set 'IgnoreRhosts yes' then systemctl reload sshd"
+    },
+    {
+      "id": "CIS-5.2.21",
+      "title": "SSH HostbasedAuthentication is disabled",
+      "category": "ssh",
+      "status": "NOT_APPLICABLE",
+      "rationale": "Host-based authentication trusts the connecting client machine's identity instead of a per-user credential - if any host in the trust list is compromised, every account on this server becomes reachable from it.",
+      "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
+      "remediation": "In /etc/ssh/sshd_config set 'HostbasedAuthentication no' then systemctl reload sshd"
+    },
+    {
+      "id": "CIS-5.2.22",
+      "title": "SSH LogLevel is INFO or more verbose",
+      "category": "ssh",
+      "status": "NOT_APPLICABLE",
+      "rationale": "The default LogLevel doesn't record which key was used to authenticate a session; INFO (or VERBOSE) is needed to attribute a login to a specific key during an investigation.",
+      "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
+      "remediation": "In /etc/ssh/sshd_config set 'LogLevel INFO' then systemctl reload sshd"
+    },
+    {
+      "id": "CIS-5.2.23",
+      "title": "SSH Ciphers are limited to strong, approved algorithms",
+      "category": "ssh",
+      "status": "NOT_APPLICABLE",
+      "rationale": "Weak ciphers (CBC-mode, RC4/arcfour, 3DES) have known cryptographic weaknesses (e.g. padding-oracle or biased-keystream attacks); an attacker who can negotiate a weak cipher gets a much easier target than a modern AEAD cipher.",
+      "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
+      "remediation": "In /etc/ssh/sshd_config set 'Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com' then systemctl reload sshd"
+    },
+    {
+      "id": "CIS-5.2.24",
+      "title": "SSH MACs are limited to strong, approved algorithms",
+      "category": "ssh",
+      "status": "NOT_APPLICABLE",
+      "rationale": "MD5- and truncated-SHA1-based MACs are weaker than modern ETM (encrypt-then-MAC) constructions and shouldn't be offered even if a client would accept the downgrade.",
+      "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
+      "remediation": "In /etc/ssh/sshd_config set 'MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com' then systemctl reload sshd"
+    },
+    {
+      "id": "CIS-5.2.25",
+      "title": "SSH KexAlgorithms are limited to strong, approved algorithms",
+      "category": "ssh",
+      "status": "NOT_APPLICABLE",
+      "rationale": "SHA-1-based key exchange methods are weaker than modern curve/group-14+ SHA-2 based exchanges and shouldn't be offered.",
+      "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
+      "remediation": "In /etc/ssh/sshd_config set 'KexAlgorithms curve25519-sha256,diffie-hellman-group16-sha512' then systemctl reload sshd"
+    },
+    {
+      "id": "CIS-5.2.26",
+      "title": "SSH compression is disabled or delayed until after authentication",
+      "category": "ssh",
+      "status": "NOT_APPLICABLE",
+      "rationale": "Pre-authentication compression has historically enabled information-leak attacks (e.g. CVE-2016-0777 style); delaying compression until after auth or disabling it removes that surface.",
+      "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
+      "remediation": "In /etc/ssh/sshd_config set 'Compression no' then systemctl reload sshd"
+    },
+    {
+      "id": "CIS-5.2.27",
+      "title": "SSH UsePAM is enabled",
+      "category": "ssh",
+      "status": "NOT_APPLICABLE",
+      "rationale": "UsePAM integrates sshd with the system's PAM stack, which is what actually enforces account lockout (faillock), password quality, and login restrictions configured elsewhere in this audit - without it, those controls don't apply to SSH logins at all.",
+      "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
+      "remediation": "In /etc/ssh/sshd_config set 'UsePAM yes' then systemctl reload sshd"
     }
   ]
 }

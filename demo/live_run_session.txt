@@ -13,6 +13,124 @@
        evidence: UID 0 accounts: root
 [PASS] CIS-5.4.2  Root account's default group is GID 0
        evidence: root:x:0:0
+[PASS] CIS-6.2.3  No duplicate UIDs exist in /etc/passwd
+       evidence: Checked 27 entries in /etc/passwd. No duplicates found.
+[PASS] CIS-6.2.4  No duplicate GIDs exist in /etc/group
+       evidence: Checked 59 entries in /etc/group. No duplicates found.
+[PASS] CIS-6.2.5  No duplicate usernames exist in /etc/passwd
+       evidence: Checked 27 entries in /etc/passwd. No duplicates found.
+[PASS] CIS-6.2.6  No duplicate group names exist in /etc/group
+       evidence: Checked 59 entries in /etc/group. No duplicates found.
+[PASS] CIS-6.2.7  root's PATH does not contain a relative or world-writable directory
+       evidence: PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games' (evaluated for the account running this audit, UID 1000)
+[PASS] CIS-6.2.8  No interactive user has a .netrc file in their home directory
+       evidence: Checked 1 interactive user home director(ies) for .netrc. None found.
+[PASS] CIS-6.2.10  No interactive user has a .forward file in their home directory
+       evidence: Checked 1 interactive user home director(ies) for .forward. None found.
+[PASS] CIS-6.2.11  No interactive user has a .rhosts file in their home directory
+       evidence: Checked 1 interactive user home director(ies) for .rhosts. None found.
+[PASS] CIS-6.2.12  All interactive users' home directories exist
+       evidence: Checked 1 interactive user account(s). All home directories exist.
+[PASS] CIS-6.2.13  All interactive users' home directories are owned by that user
+       evidence: Checked 1 existing home director(ies). All correctly owned.
+[PASS] CIS-6.2.14  The shadow group has no members
+       evidence: shadow group members: (none)
+[PASS] CIS-6.2.15  Every group referenced in /etc/passwd exists in /etc/group
+       evidence: Checked 27 /etc/passwd entries against 59 known GIDs. All primary GIDs resolve to a real group.
+[PASS] CIS-6.2.16  No legacy NIS '+' entries exist in /etc/passwd
+       evidence: Checked 27 line(s) in /etc/passwd. No '+' entries found.
+[N/A ] CIS-6.2.17  No legacy NIS '+' entries exist in /etc/shadow
+       evidence: /etc/shadow could not be read.
+[PASS] CIS-6.2.18  No legacy NIS '+' entries exist in /etc/group
+       evidence: Checked 59 line(s) in /etc/group. No '+' entries found.
+[FAIL] CIS-5.4.3  The system default password hashing algorithm is SHA-512
+       evidence: /etc/login.defs ENCRYPT_METHOD YESCRYPT (expected SHA512)
+       remediation: Set 'ENCRYPT_METHOD SHA512' in /etc/login.defs, and ensure pam_unix.so in /etc/pam.d/common-password uses sha512.
+[FAIL] CIS-5.4.5  A default account inactivity lock period is configured
+       evidence: /etc/default/useradd INACTIVE=None (expected INACTIVE set to a value >= 0)
+       remediation: Set 'INACTIVE=30' in /etc/default/useradd (existing accounts also need: chage --inactive 30 <user>)
+
+== banners ==
+[FAIL] CIS-1.8.1  /etc/motd permissions are 644 or more restrictive, owned by root
+       evidence: /etc/motd does not exist.
+       remediation: chown root:root /etc/motd && chmod 644 /etc/motd
+[PASS] CIS-1.8.2  /etc/issue permissions are 644 or more restrictive, owned by root
+       evidence: /etc/issue: mode=644 owner=root group=root
+[PASS] CIS-1.8.3  /etc/issue.net permissions are 644 or more restrictive, owned by root
+       evidence: /etc/issue.net: mode=644 owner=root group=root
+[PASS] CIS-1.8.4  /etc/issue does not reveal OS or version information
+       evidence: /etc/issue content: 'Ubuntu 26.04 LTS \\n \\l\n\n'
+[PASS] CIS-1.8.5  /etc/issue.net does not reveal OS or version information
+       evidence: /etc/issue.net content: 'Ubuntu 26.04 LTS\n'
+[FAIL] CIS-1.8.6  /etc/motd does not reveal OS or version information
+       evidence: /etc/motd does not exist.
+       remediation: Remove OS/version-revealing content from /etc/motd and any /etc/update-motd.d/ scripts that generate it.
+[N/A ] CIS-1.9.1  GDM displays a login warning banner (if GDM is installed)
+       evidence: GDM is not installed on this host (checked for gdm3/gdm binaries and /etc/gdm3) - this is a headless/server system, so a GDM login banner does not apply.
+
+== cron_pam ==
+[PASS] CIS-5.1.1  The cron daemon is enabled and active
+       evidence: systemctl is-active cron: active; is-enabled: enabled
+[FAIL] CIS-5.1.2  /etc/crontab permissions are 600 or more restrictive, owned by root
+       evidence: /etc/crontab: mode=644 owner=root group=root (expected mode <= 600, owner root)
+       remediation: chown root:root /etc/crontab && chmod 600 /etc/crontab
+[FAIL] CIS-5.1.3  /etc/cron.hourly permissions are 700 or more restrictive, owned by root
+       evidence: /etc/cron.hourly: mode=755 owner=root group=root (expected mode <= 700, owner root)
+       remediation: chown root:root /etc/cron.hourly && chmod 700 /etc/cron.hourly
+[FAIL] CIS-5.1.4  /etc/cron.daily permissions are 700 or more restrictive, owned by root
+       evidence: /etc/cron.daily: mode=755 owner=root group=root (expected mode <= 700, owner root)
+       remediation: chown root:root /etc/cron.daily && chmod 700 /etc/cron.daily
+[FAIL] CIS-5.1.5  /etc/cron.weekly permissions are 700 or more restrictive, owned by root
+       evidence: /etc/cron.weekly: mode=755 owner=root group=root (expected mode <= 700, owner root)
+       remediation: chown root:root /etc/cron.weekly && chmod 700 /etc/cron.weekly
+[FAIL] CIS-5.1.6  /etc/cron.monthly permissions are 700 or more restrictive, owned by root
+       evidence: /etc/cron.monthly: mode=755 owner=root group=root (expected mode <= 700, owner root)
+       remediation: chown root:root /etc/cron.monthly && chmod 700 /etc/cron.monthly
+[FAIL] CIS-5.1.7  /etc/cron.d permissions are 700 or more restrictive, owned by root
+       evidence: /etc/cron.d: mode=755 owner=root group=root (expected mode <= 700, owner root)
+       remediation: chown root:root /etc/cron.d && chmod 700 /etc/cron.d
+[FAIL] CIS-5.1.9  at is restricted to authorized users (at.allow present, at.deny absent)
+       evidence: /etc/at.allow exists=False, /etc/at.deny exists=False (expected at.allow to exist and at.deny to not exist)
+       remediation: touch /etc/at.allow && chmod 600 /etc/at.allow && rm -f /etc/at.deny   # list only trusted usernames, one per line, in at.allow
+[FAIL] CIS-5.1.10  Access to the su command is restricted to a defined group
+       evidence: /etc/pam.d/su references pam_wheel.so: False
+       remediation: Add 'auth required pam_wheel.so use_uid group=sudo' to /etc/pam.d/su
+[FAIL] CIS-5.5.1.1  pwquality minlen minlen >= 14
+       evidence: minlen is not set in /etc/security/pwquality.conf (not found) (pwquality default does not enforce this).
+       remediation: Set 'minlen = <value>' in /etc/security/pwquality.conf
+[FAIL] CIS-5.5.1.2  pwquality dcredit dcredit <= -1 (at least one digit required)
+       evidence: dcredit is not set in /etc/security/pwquality.conf (not found) (pwquality default does not enforce this).
+       remediation: Set 'dcredit = <value>' in /etc/security/pwquality.conf
+[FAIL] CIS-5.5.1.3  pwquality ucredit ucredit <= -1 (at least one uppercase letter required)
+       evidence: ucredit is not set in /etc/security/pwquality.conf (not found) (pwquality default does not enforce this).
+       remediation: Set 'ucredit = <value>' in /etc/security/pwquality.conf
+[FAIL] CIS-5.5.1.4  pwquality lcredit lcredit <= -1 (at least one lowercase letter required)
+       evidence: lcredit is not set in /etc/security/pwquality.conf (not found) (pwquality default does not enforce this).
+       remediation: Set 'lcredit = <value>' in /etc/security/pwquality.conf
+[FAIL] CIS-5.5.1.5  pwquality ocredit ocredit <= -1 (at least one special character required)
+       evidence: ocredit is not set in /etc/security/pwquality.conf (not found) (pwquality default does not enforce this).
+       remediation: Set 'ocredit = <value>' in /etc/security/pwquality.conf
+[FAIL] CIS-5.5.1.6  pwquality maxrepeat 0 < maxrepeat <= 3
+       evidence: maxrepeat is not set in /etc/security/pwquality.conf (not found) (pwquality default does not enforce this).
+       remediation: Set 'maxrepeat = <value>' in /etc/security/pwquality.conf
+[FAIL] CIS-5.5.1.7  pwquality difok difok >= 2
+       evidence: difok is not set in /etc/security/pwquality.conf (not found) (pwquality default does not enforce this).
+       remediation: Set 'difok = <value>' in /etc/security/pwquality.conf
+[FAIL] CIS-5.5.1.8  pwquality retry 0 < retry <= 3
+       evidence: retry is not set in /etc/security/pwquality.conf (not found) (pwquality default does not enforce this).
+       remediation: Set 'retry = <value>' in /etc/security/pwquality.conf
+[FAIL] CIS-5.5.2.1  faillock deny is set to 5 or fewer failed attempts
+       evidence: /etc/security/faillock.conf deny = None
+       remediation: Set 'deny = 5' in /etc/security/faillock.conf
+[FAIL] CIS-5.5.2.2  faillock unlock_time is configured
+       evidence: /etc/security/faillock.conf unlock_time = None
+       remediation: Set 'unlock_time = 900' in /etc/security/faillock.conf
+[FAIL] CIS-5.5.2.3  faillock even_deny_root is enabled
+       evidence: /etc/security/faillock.conf even_deny_root = None
+       remediation: Add 'even_deny_root' to /etc/security/faillock.conf
+[FAIL] CIS-5.5.3.1  Password reuse (history) is restricted to at least the last 24 passwords
+       evidence: /etc/pam.d/common-password pam_pwhistory.so remember=None (expected remember >= 24)
+       remediation: Add 'remember = 24' to the pam_pwhistory.so line in /etc/pam.d/common-password
 
 == filesystem ==
 [PASS] CIS-6.1.2  /etc/passwd permissions are 644 or more restrictive, owned by root:root
@@ -32,6 +150,115 @@
 [FAIL] CIS-5.4.4  Default user umask is 027 or more restrictive
        evidence: No UMASK setting found in /etc/login.defs (login.defs default of 022 applies).
        remediation: Set 'UMASK 027' in /etc/login.defs, and add 'umask 027' to /etc/profile.d/local-umask.sh for shell sessions.
+[PASS] CIS-1.1.2.1  /tmp is a separate partition
+       evidence: /tmp is a separate mount point (fstype=tmpfs, options=nodev,nosuid,nr_inodes=1048576,rw,size=16412504k).
+[PASS] CIS-1.1.2.2  /tmp is mounted with nodev
+       evidence: /tmp options: nodev,nosuid,nr_inodes=1048576,rw,size=16412504k
+[PASS] CIS-1.1.2.3  /tmp is mounted with nosuid
+       evidence: /tmp options: nodev,nosuid,nr_inodes=1048576,rw,size=16412504k
+[FAIL] CIS-1.1.2.4  /tmp is mounted with noexec
+       evidence: /tmp options: nodev,nosuid,nr_inodes=1048576,rw,size=16412504k (expected 'noexec' among mount options)
+       remediation: Add 'noexec' to /tmp's mount options in /etc/fstab and remount.
+[FAIL] CIS-1.1.2.5  /var is a separate partition
+       evidence: /var is not listed as a separate mount point in /proc/mounts (it is part of its parent filesystem).
+       remediation: Add a dedicated /var entry to /etc/fstab during install/repartition.
+[FAIL] CIS-1.1.2.6  /var/tmp is a separate partition
+       evidence: /var/tmp is not listed as a separate mount point in /proc/mounts (it is part of its parent filesystem).
+       remediation: Add a dedicated /var/tmp entry to /etc/fstab and remount.
+[N/A ] CIS-1.1.2.7  /var/tmp is mounted with nodev
+       evidence: /var/tmp is not a separate mount point on this host, so the 'nodev' mount option does not apply.
+[N/A ] CIS-1.1.2.8  /var/tmp is mounted with nosuid
+       evidence: /var/tmp is not a separate mount point on this host, so the 'nosuid' mount option does not apply.
+[N/A ] CIS-1.1.2.9  /var/tmp is mounted with noexec
+       evidence: /var/tmp is not a separate mount point on this host, so the 'noexec' mount option does not apply.
+[FAIL] CIS-1.1.2.10  /var/log is a separate partition
+       evidence: /var/log is not listed as a separate mount point in /proc/mounts (it is part of its parent filesystem).
+       remediation: Add a dedicated /var/log entry to /etc/fstab and remount.
+[FAIL] CIS-1.1.2.11  /var/log/audit is a separate partition
+       evidence: /var/log/audit is not listed as a separate mount point in /proc/mounts (it is part of its parent filesystem).
+       remediation: Add a dedicated /var/log/audit entry to /etc/fstab and remount.
+[FAIL] CIS-1.1.2.12  /home is a separate partition
+       evidence: /home is not listed as a separate mount point in /proc/mounts (it is part of its parent filesystem).
+       remediation: Add a dedicated /home entry to /etc/fstab during install/repartition.
+[N/A ] CIS-1.1.2.13  /home is mounted with nodev
+       evidence: /home is not a separate mount point on this host, so the 'nodev' mount option does not apply.
+[PASS] CIS-1.1.2.14  /dev/shm is mounted with nodev
+       evidence: /dev/shm options: noatime,nodev,nosuid,rw
+[PASS] CIS-1.1.2.15  /dev/shm is mounted with nosuid
+       evidence: /dev/shm options: noatime,nodev,nosuid,rw
+[FAIL] CIS-1.1.2.16  /dev/shm is mounted with noexec
+       evidence: /dev/shm options: noatime,nodev,nosuid,rw (expected 'noexec' among mount options)
+       remediation: Add 'noexec' to /dev/shm's mount options in /etc/fstab and remount.
+[FAIL] CIS-1.1.2.17  All world-writable directories in key paths have the sticky bit set
+       evidence: 3 world-writable director(ies) without the sticky bit under /tmp, /var/tmp: /tmp/.dotnet, /tmp/.X11-unix, /tmp/.dotnet/shm
+       remediation: For each reported directory: chmod +t <dir>
+
+== kernel_hardening ==
+[PASS] CIS-1.6.3  Kernel pointers are restricted from unprivileged reads (kernel.kptr_restrict)
+       evidence: kernel.kptr_restrict = 1
+[FAIL] CIS-1.6.4  dmesg output is restricted to privileged users (kernel.dmesg_restrict)
+       evidence: kernel.dmesg_restrict = 0 (expected kernel.dmesg_restrict = 1)
+       remediation: sysctl -w kernel.dmesg_restrict=1 && echo 'kernel.dmesg_restrict=1' >> /etc/sysctl.d/60-cis-hardening.conf
+[PASS] CIS-1.6.5  ptrace scope is restricted (kernel.yama.ptrace_scope)
+       evidence: kernel.yama.ptrace_scope = 1
+[PASS] CIS-1.6.6  Hardlink creation restrictions are enabled (fs.protected_hardlinks)
+       evidence: fs.protected_hardlinks = 1
+[PASS] CIS-1.6.7  Symlink-following restrictions are enabled (fs.protected_symlinks)
+       evidence: fs.protected_symlinks = 1
+[PASS] CIS-1.6.8  FIFO write restrictions are enabled (fs.protected_fifos)
+       evidence: fs.protected_fifos = 1
+[PASS] CIS-1.6.9  Regular-file write restrictions are enabled (fs.protected_regular)
+       evidence: fs.protected_regular = 2
+[PASS] CIS-1.6.10  Unprivileged BPF is disabled (kernel.unprivileged_bpf_disabled)
+       evidence: kernel.unprivileged_bpf_disabled = 2
+[N/A ] CIS-1.6.11  JIT hardening is enabled for the BPF just-in-time compiler (net.core.bpf_jit_harden)
+       evidence: sysctl key net.core.bpf_jit_harden is not readable on this host/kernel.
+[PASS] CIS-1.6.12  Performance event access is restricted (kernel.perf_event_paranoid)
+       evidence: kernel.perf_event_paranoid = 2
+
+== kernel_modules ==
+[FAIL] CIS-1.1.1.1  Kernel module 'cramfs' (obsolete compressed ROM filesystem) is disabled
+       evidence: module 'cramfs' (obsolete compressed ROM filesystem): currently loaded=False; no install/blacklist directive for 'cramfs' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads
+       remediation: echo 'install cramfs /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist cramfs' >> /etc/modprobe.d/cis-hardening.conf && rmmod cramfs 2>/dev/null || true
+[FAIL] CIS-1.1.1.2  Kernel module 'freevxfs' (legacy Veritas filesystem) is disabled
+       evidence: module 'freevxfs' (legacy Veritas filesystem): currently loaded=False; no install/blacklist directive for 'freevxfs' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads
+       remediation: echo 'install freevxfs /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist freevxfs' >> /etc/modprobe.d/cis-hardening.conf && rmmod freevxfs 2>/dev/null || true
+[FAIL] CIS-1.1.1.3  Kernel module 'hfs' (legacy Apple HFS filesystem) is disabled
+       evidence: module 'hfs' (legacy Apple HFS filesystem): currently loaded=False; no install/blacklist directive for 'hfs' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads
+       remediation: echo 'install hfs /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist hfs' >> /etc/modprobe.d/cis-hardening.conf && rmmod hfs 2>/dev/null || true
+[FAIL] CIS-1.1.1.4  Kernel module 'hfsplus' (legacy Apple HFS+ filesystem) is disabled
+       evidence: module 'hfsplus' (legacy Apple HFS+ filesystem): currently loaded=False; no install/blacklist directive for 'hfsplus' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads
+       remediation: echo 'install hfsplus /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist hfsplus' >> /etc/modprobe.d/cis-hardening.conf && rmmod hfsplus 2>/dev/null || true
+[FAIL] CIS-1.1.1.5  Kernel module 'jffs2' (flash filesystem, unneeded on non-flash media) is disabled
+       evidence: module 'jffs2' (flash filesystem, unneeded on non-flash media): currently loaded=False; no install/blacklist directive for 'jffs2' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads
+       remediation: echo 'install jffs2 /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist jffs2' >> /etc/modprobe.d/cis-hardening.conf && rmmod jffs2 2>/dev/null || true
+[FAIL] CIS-1.1.1.6  Kernel module 'squashfs' (read-only compressed filesystem, mainly used by snap/live media) is disabled
+       evidence: module 'squashfs' (read-only compressed filesystem, mainly used by snap/live media): currently loaded=False; no install/blacklist directive for 'squashfs' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads
+       remediation: echo 'install squashfs /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist squashfs' >> /etc/modprobe.d/cis-hardening.conf && rmmod squashfs 2>/dev/null || true
+[FAIL] CIS-1.1.1.7  Kernel module 'udf' (Universal Disk Format filesystem used by optical media) is disabled
+       evidence: module 'udf' (Universal Disk Format filesystem used by optical media): currently loaded=False; no install/blacklist directive for 'udf' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads
+       remediation: echo 'install udf /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist udf' >> /etc/modprobe.d/cis-hardening.conf && rmmod udf 2>/dev/null || true
+[FAIL] CIS-1.1.1.8  Kernel module 'usb-storage' (USB mass-storage driver, a common exfiltration/malware vector) is disabled
+       evidence: module 'usb-storage' (USB mass-storage driver, a common exfiltration/malware vector): currently loaded=False; no install/blacklist directive for 'usb-storage' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads
+       remediation: echo 'install usb-storage /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist usb-storage' >> /etc/modprobe.d/cis-hardening.conf && rmmod usb-storage 2>/dev/null || true
+[FAIL] CIS-1.1.1.9  Kernel module 'dccp' (Datagram Congestion Control Protocol, rarely used) is disabled
+       evidence: module 'dccp' (Datagram Congestion Control Protocol, rarely used): currently loaded=False; no install/blacklist directive for 'dccp' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads
+       remediation: echo 'install dccp /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist dccp' >> /etc/modprobe.d/cis-hardening.conf && rmmod dccp 2>/dev/null || true
+[FAIL] CIS-1.1.1.10  Kernel module 'sctp' (Stream Control Transmission Protocol, rarely used) is disabled
+       evidence: module 'sctp' (Stream Control Transmission Protocol, rarely used): currently loaded=False; no install/blacklist directive for 'sctp' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads
+       remediation: echo 'install sctp /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist sctp' >> /etc/modprobe.d/cis-hardening.conf && rmmod sctp 2>/dev/null || true
+[FAIL] CIS-1.1.1.11  Kernel module 'rds' (Reliable Datagram Sockets protocol, rarely used) is disabled
+       evidence: module 'rds' (Reliable Datagram Sockets protocol, rarely used): currently loaded=False; no install/blacklist directive for 'rds' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads
+       remediation: echo 'install rds /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist rds' >> /etc/modprobe.d/cis-hardening.conf && rmmod rds 2>/dev/null || true
+[FAIL] CIS-1.1.1.12  Kernel module 'tipc' (Transparent Inter-Process Communication protocol, rarely used) is disabled
+       evidence: module 'tipc' (Transparent Inter-Process Communication protocol, rarely used): currently loaded=False; no install/blacklist directive for 'tipc' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads
+       remediation: echo 'install tipc /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist tipc' >> /etc/modprobe.d/cis-hardening.conf && rmmod tipc 2>/dev/null || true
+[FAIL] CIS-1.1.1.13  Kernel module 'firewire-core' (FireWire core driver, historically a DMA-attack vector) is disabled
+       evidence: module 'firewire-core' (FireWire core driver, historically a DMA-attack vector): currently loaded=False; no install/blacklist directive for 'firewire-core' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads
+       remediation: echo 'install firewire-core /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist firewire-core' >> /etc/modprobe.d/cis-hardening.conf && rmmod firewire-core 2>/dev/null || true
+[FAIL] CIS-1.1.1.14  Kernel module 'bluetooth' (Bluetooth stack, unneeded on a headless server) is disabled
+       evidence: module 'bluetooth' (Bluetooth stack, unneeded on a headless server): currently loaded=False; no install/blacklist directive for 'bluetooth' found in /etc/modprobe.d/blacklist-ath_pci.conf, /etc/modprobe.d/blacklist-firewire.conf, /etc/modprobe.d/blacklist-framebuffer.conf, /etc/modprobe.d/blacklist-rare-network.conf, /etc/modprobe.d/blacklist.conf, /etc/modprobe.d/iwlwifi.conf - not blocked for future loads
+       remediation: echo 'install bluetooth /bin/true' >> /etc/modprobe.d/cis-hardening.conf && echo 'blacklist bluetooth' >> /etc/modprobe.d/cis-hardening.conf && rmmod bluetooth 2>/dev/null || true
 
 == logging ==
 [FAIL] CIS-4.2.1  auditd is installed and enabled
@@ -44,6 +271,21 @@
 [FAIL] CIS-5.1.8  cron is restricted to authorized users (cron.allow present, cron.deny absent)
        evidence: /etc/cron.allow exists=False, /etc/cron.deny exists=False (expected cron.allow to exist and cron.deny to not exist)
        remediation: touch /etc/cron.allow && chmod 600 /etc/cron.allow && rm -f /etc/cron.deny   # list only trusted usernames, one per line, in cron.allow
+
+== mac ==
+[PASS] CIS-1.5.1  A mandatory access control system (AppArmor) is installed
+       evidence: AppArmor installed: True; SELinux installed: False
+[FAIL] CIS-1.5.2  AppArmor is enabled at boot
+       evidence: /sys/module/apparmor/parameters/enabled = 'N'
+       remediation: Ensure the running kernel was booted with apparmor enabled (Ubuntu kernels default to this; verify with 'cat /sys/module/apparmor/parameters/enabled').
+[N/A ] CIS-1.5.3  AppArmor profiles are loaded
+       evidence: `aa-status`: apparmor module is loaded. (could not determine profile count, likely needs root)
+[N/A ] CIS-1.5.4  No AppArmor profiles are running in complain (non-enforcing) mode
+       evidence: `aa-status` failed: apparmor filesystem is not mounted. (likely needs root).
+[PASS] CIS-1.5.5  SELinux and AppArmor are not both installed
+       evidence: AppArmor installed: True; SELinux installed: False
+[N/A ] CIS-1.5.6  SELinux is not set to disabled (on systems where it is installed)
+       evidence: SELinux is not installed on this host (this is an AppArmor-based distribution).
 
 == network ==
 [FAIL] CIS-3.1.1  IP forwarding is disabled
@@ -62,6 +304,126 @@
 [FAIL] CIS-4.1  A host-based firewall (ufw/nftables/iptables) is installed and active
        evidence: No firewall tool found on PATH (checked ufw, nft, iptables) - no host-based firewall is installed.
        remediation: Install and enable one firewall: 'apt install ufw && ufw default deny incoming && ufw enable' is the simplest option for a single host.
+
+== network_services ==
+[PASS] CIS-2.2.1  autofs is not installed or active
+       evidence: package 'autofs' installed=False; unit 'autofs' active=False
+[PASS] CIS-2.2.2  avahi-daemon is not installed or active
+       evidence: package 'avahi-daemon' installed=False; unit 'avahi-daemon' active=False
+[PASS] CIS-2.2.3  A DHCP server (isc-dhcp-server) is not installed or active
+       evidence: package 'isc-dhcp-server' installed=False; unit 'isc-dhcp-server' active=False
+[PASS] CIS-2.2.4  A DNS server (bind9) is not installed or active
+       evidence: package 'bind9' installed=False; unit 'bind9' active=False
+[PASS] CIS-2.2.5  dnsmasq is not installed or active
+       evidence: package 'dnsmasq' installed=False; unit 'dnsmasq' active=False
+[PASS] CIS-2.2.6  Samba (smbd) is not installed or active
+       evidence: package 'samba' installed=False; unit 'smbd' active=False
+[PASS] CIS-2.2.7  An FTP server (vsftpd) is not installed or active
+       evidence: package 'vsftpd' installed=False; unit 'vsftpd' active=False
+[PASS] CIS-2.2.8  An IMAP/POP3 server (dovecot) is not installed or active
+       evidence: package 'dovecot-core' installed=False; unit 'dovecot' active=False
+[PASS] CIS-2.2.9  An NFS server is not installed or active
+       evidence: package 'nfs-kernel-server' installed=False; unit 'nfs-server' active=False
+[PASS] CIS-2.2.10  rpcbind is not installed or active
+       evidence: package 'rpcbind' installed=False; unit 'rpcbind' active=False
+[PASS] CIS-2.2.11  A print server (CUPS) is not installed or active
+       evidence: package 'cups' installed=False; unit 'cups' active=False
+[PASS] CIS-2.2.12  The rsync service (daemon mode) is not installed or active
+       evidence: package 'rsync' installed=True; unit 'rsync' active=False (installed but not active - not currently a listening risk)
+[PASS] CIS-2.2.13  An SNMP server (snmpd) is not installed or active
+       evidence: package 'snmpd' installed=False; unit 'snmpd' active=False
+[PASS] CIS-2.2.14  A web proxy server (squid) is not installed or active
+       evidence: package 'squid' installed=False; unit 'squid' active=False
+[PASS] CIS-2.2.15  A web server (apache2) is not installed or active
+       evidence: package 'apache2' installed=False; unit 'apache2' active=False
+[PASS] CIS-2.2.16  A web server (nginx) is not installed or active
+       evidence: package 'nginx' installed=False; unit 'nginx' active=False
+[PASS] CIS-2.2.17  xinetd is not installed or active
+       evidence: package 'xinetd' installed=False; unit 'xinetd' active=False
+[PASS] CIS-2.2.18  The X Window System is not installed
+       evidence: xserver-xorg-core installed or Xorg binary present: False
+[N/A ] CIS-2.3.1  The mail transfer agent is configured for local-only mail delivery
+       evidence: postfix is not installed on this host.
+[PASS] CIS-2.4.1  A NIS client (ypbind) is not installed
+       evidence: nis package installed or ypbind binary present: False
+
+== network ==
+[PASS] CIS-3.2.3  Source-routed IPv4 packets are not accepted (all interfaces)
+       evidence: net.ipv4.conf.all.accept_source_route = 0
+[PASS] CIS-3.2.5  Source-routed IPv4 packets are not accepted (default for new interfaces)
+       evidence: net.ipv4.conf.default.accept_source_route = 0
+[FAIL] CIS-3.2.6  ICMP redirects are not accepted (default for new interfaces)
+       evidence: net.ipv4.conf.default.accept_redirects = 1 (expected net.ipv4.conf.default.accept_redirects = 0)
+       remediation: sysctl -w net.ipv4.conf.default.accept_redirects=0 && echo 'net.ipv4.conf.default.accept_redirects=0' >> /etc/sysctl.d/60-cis-hardening.conf
+[FAIL] CIS-3.2.7  Sending ICMP redirects is disabed (default for new interfaces)
+       evidence: net.ipv4.conf.default.send_redirects = 1 (expected net.ipv4.conf.default.send_redirects = 0)
+       remediation: sysctl -w net.ipv4.conf.default.send_redirects=0 && echo 'net.ipv4.conf.default.send_redirects=0' >> /etc/sysctl.d/60-cis-hardening.conf
+[FAIL] CIS-3.2.8  Secure ICMP redirects are not accepted (all interfaces)
+       evidence: net.ipv4.conf.all.secure_redirects = 1 (expected net.ipv4.conf.all.secure_redirects = 0)
+       remediation: sysctl -w net.ipv4.conf.all.secure_redirects=0 && echo 'net.ipv4.conf.all.secure_redirects=0' >> /etc/sysctl.d/60-cis-hardening.conf
+[FAIL] CIS-3.2.9  Secure ICMP redirects are not accepted (default for new interfaces)
+       evidence: net.ipv4.conf.default.secure_redirects = 1 (expected net.ipv4.conf.default.secure_redirects = 0)
+       remediation: sysctl -w net.ipv4.conf.default.secure_redirects=0 && echo 'net.ipv4.conf.default.secure_redirects=0' >> /etc/sysctl.d/60-cis-hardening.conf
+[FAIL] CIS-3.2.10  Suspicious (martian) packets are logged (all interfaces)
+       evidence: net.ipv4.conf.all.log_martians = 0 (expected net.ipv4.conf.all.log_martians = 1)
+       remediation: sysctl -w net.ipv4.conf.all.log_martians=1 && echo 'net.ipv4.conf.all.log_martians=1' >> /etc/sysctl.d/60-cis-hardening.conf
+[FAIL] CIS-3.2.11  Suspicious (martian) packets are logged (default for new interfaces)
+       evidence: net.ipv4.conf.default.log_martians = 0 (expected net.ipv4.conf.default.log_martians = 1)
+       remediation: sysctl -w net.ipv4.conf.default.log_martians=1 && echo 'net.ipv4.conf.default.log_martians=1' >> /etc/sysctl.d/60-cis-hardening.conf
+[PASS] CIS-3.2.12  Broadcast ICMP requests are ignored
+       evidence: net.ipv4.icmp_echo_ignore_broadcasts = 1
+[PASS] CIS-3.2.13  Bogus ICMP error responses are ignored
+       evidence: net.ipv4.icmp_ignore_bogus_error_responses = 1
+[PASS] CIS-3.2.14  Reverse path filtering is enabled (default for new interfaces)
+       evidence: net.ipv4.conf.default.rp_filter = 2
+[PASS] CIS-3.2.15  IPv6 router advertisements are not accepted (all interfaces)
+       evidence: net.ipv6.conf.all.accept_ra = 0
+[PASS] CIS-3.2.16  IPv6 router advertisements are not accepted (default for new interfaces)
+       evidence: net.ipv6.conf.default.accept_ra = 0
+[PASS] CIS-3.2.17  Source-routed IPv6 packets are not accepted (all interfaces)
+       evidence: net.ipv6.conf.all.accept_source_route = 0
+[PASS] CIS-3.2.18  Source-routed IPv6 packets are not accepted (default for new interfaces)
+       evidence: net.ipv6.conf.default.accept_source_route = 0
+
+== time_sync ==
+[PASS] CIS-2.5.1  A time synchronization daemon (chrony or systemd-timesyncd) is installed
+       evidence: chronyd present: True; timedatectl present: True
+[PASS] CIS-2.5.2  The time synchronization service is active and enabled
+       evidence: chrony: active; chronyd: active; systemd-timesyncd: inactive
+[FAIL] CIS-2.5.3  chrony is configured with at least one explicit time source
+       evidence: chrony.conf time source directives: (none)
+       remediation: Add at least one 'pool <ntp-pool> iburst' or 'server <ntp-server> iburst' line to /etc/chrony/chrony.conf, then systemctl restart chrony
+[N/A ] CIS-2.5.4  systemd-timesyncd has an NTP server configured (if in use as the sync daemon)
+       evidence: /etc/systemd/timesyncd.conf does not exist on this host.
+[PASS] CIS-2.5.5  The system clock is currently synchronized
+       evidence: `timedatectl show -p NTPSynchronized --value`: yes
+[PASS] CIS-2.5.6  Only one time synchronization daemon is active
+       evidence: chrony active: True; systemd-timesyncd active: False
+
+== package_management ==
+[PASS] CIS-1.2.1  APT is not configured to allow unauthenticated (unsigned) packages
+       evidence: No AllowUnauthenticated override found in 10 file(s) under /etc/apt/apt.conf.d (GPG signature checking is on by default).
+[FAIL] CIS-1.2.2  No plain-HTTP (unencrypted) APT repository sources are configured
+       evidence: 2 plain-http:// source line(s) found: /etc/apt/sources.list.d/ubuntu.sources: URIs: http://archive.ubuntu.com/ubuntu/ | /etc/apt/sources.list.d/ubuntu.sources: URIs: http://security.ubuntu.com/ubuntu/
+       remediation: Edit /etc/apt/sources.list and /etc/apt/sources.list.d/* to use https:// mirror URLs.
+[PASS] CIS-1.2.3  dpkg reports no broken or half-configured packages
+       evidence: `dpkg --audit`: (no output)
+[FAIL] CIS-1.3.1  A file integrity checking tool (AIDE) is installed
+       evidence: No aide binary found on PATH or at /usr/sbin/aide.
+       remediation: apt install aide aide-common && aideinit
+[FAIL] CIS-1.3.2  Filesystem integrity checks are scheduled regularly
+       evidence: No AIDE cron job (checked /etc/cron.d/aide, /etc/cron.daily/aide) and aidecheck.timer is not enabled (systemctl is-enabled: not-found).
+       remediation: Enable the aide systemd timer (systemctl --now enable aidecheck.timer) or add a cron.d entry that runs 'aide --check' daily.
+[N/A ] CIS-1.4.1  Bootloader configuration file permissions are restrictive
+       evidence: Neither /boot/grub/grub.cfg nor /boot/grub2/grub.cfg exists (no GRUB bootloader found).
+[N/A ] CIS-1.4.2  Bootloader is password protected
+       evidence: Neither /boot/grub/grub.cfg nor /boot/grub2/grub.cfg exists (no GRUB bootloader found).
+[FAIL] CIS-1.7.1  Unattended-upgrades is configured to automatically reboot when required
+       evidence: Automatic-Reboot setting present and true: False
+       remediation: Set 'Unattended-Upgrade::Automatic-Reboot "true";' in /etc/apt/apt.conf.d/50unattended-upgrades
+[FAIL] CIS-1.7.2  Unattended-upgrades removes unused dependencies after upgrading
+       evidence: Remove-Unused-Dependencies setting present and true: False
+       remediation: Set 'Unattended-Upgrade::Remove-Unused-Dependencies "true";' in /etc/apt/apt.conf.d/50unattended-upgrades
 
 == services ==
 [PASS] CIS-2.1.1  Legacy plaintext-protocol services (telnet/rsh/rlogin/tftp/NIS) are not installed
@@ -88,6 +450,34 @@
        evidence: openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.
 [N/A ] CIS-5.2.20  SSH warning banner is configured
        evidence: openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.
+[N/A ] CIS-5.2.12  SSH LoginGraceTime is 60 seconds or less
+       evidence: openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.
+[N/A ] CIS-5.2.13  SSH MaxSessions is 10 or less
+       evidence: openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.
+[N/A ] CIS-5.2.14  SSH ClientAliveInterval is configured (nonzero, at most 900 seconds)
+       evidence: openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.
+[N/A ] CIS-5.2.15  SSH ClientAliveCountMax is 3 or less
+       evidence: openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.
+[N/A ] CIS-5.2.17  SSH AllowTcpForwarding is disabled
+       evidence: openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.
+[N/A ] CIS-5.2.18  SSH PermitUserEnvironment is disabled
+       evidence: openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.
+[N/A ] CIS-5.2.19  SSH IgnoreRhosts is enabled
+       evidence: openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.
+[N/A ] CIS-5.2.21  SSH HostbasedAuthentication is disabled
+       evidence: openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.
+[N/A ] CIS-5.2.22  SSH LogLevel is INFO or more verbose
+       evidence: openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.
+[N/A ] CIS-5.2.23  SSH Ciphers are limited to strong, approved algorithms
+       evidence: openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.
+[N/A ] CIS-5.2.24  SSH MACs are limited to strong, approved algorithms
+       evidence: openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.
+[N/A ] CIS-5.2.25  SSH KexAlgorithms are limited to strong, approved algorithms
+       evidence: openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.
+[N/A ] CIS-5.2.26  SSH compression is disabled or delayed until after authentication
+       evidence: openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.
+[N/A ] CIS-5.2.27  SSH UsePAM is enabled
+       evidence: openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.
 
 ------------------------------------------------------------
-Summary: 35 checks | 18 pass, 9 fail, 8 n/a
+Summary: 191 checks | 86 pass, 69 fail, 36 n/a
