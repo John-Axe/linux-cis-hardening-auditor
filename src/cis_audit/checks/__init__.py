@@ -14,6 +14,8 @@ from cis_audit.checks import (  # noqa: F401
     kernel_modules,
     logging_audit,
     network,
+    network_services,
+    network_sysctl_expanded,
     services,
     ssh,
 )
@@ -27,6 +29,8 @@ __all__ = [
     "kernel_modules",
     "logging_audit",
     "network",
+    "network_services",
+    "network_sysctl_expanded",
     "services",
     "ssh",
 ]
