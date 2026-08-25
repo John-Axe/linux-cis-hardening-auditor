@@ -1,0 +1,325 @@
+{
+  "summary": {
+    "total_checks": 35,
+    "PASS": 18,
+    "FAIL": 9,
+    "NOT_APPLICABLE": 8
+  },
+  "checks": [
+    {
+      "id": "CIS-5.4.1.1",
+      "title": "Password maximum age is 365 days or less",
+      "category": "auth",
+      "status": "FAIL",
+      "rationale": "Forcing periodic password changes limits the window an already-compromised password stays useful, though CIS notes this is less important when MFA is in use.",
+      "evidence": "/etc/login.defs PASS_MAX_DAYS 99999 (expected 0 < PASS_MAX_DAYS <= 365)",
+      "remediation": "Set 'PASS_MAX_DAYS 365' in /etc/login.defs (existing accounts also need: chage --maxdays 365 <user>)"
+    },
+    {
+      "id": "CIS-5.4.1.2",
+      "title": "Password minimum age is at least 1 day",
+      "category": "auth",
+      "status": "FAIL",
+      "rationale": "Without a minimum age, a user can immediately change a new password back to their old one, defeating password-history rotation policies.",
+      "evidence": "/etc/login.defs PASS_MIN_DAYS 0 (expected PASS_MIN_DAYS >= 1)",
+      "remediation": "Set 'PASS_MIN_DAYS 1' in /etc/login.defs (existing accounts also need: chage --mindays 1 <user>)"
+    },
+    {
+      "id": "CIS-5.4.1.3",
+      "title": "Password expiration warning is at least 7 days",
+      "category": "auth",
+      "status": "PASS",
+      "rationale": "Warning users before their password expires avoids surprise lockouts, which otherwise tend to get 'fixed' by disabling expiry entirely - a worse outcome.",
+      "evidence": "/etc/login.defs PASS_WARN_AGE 7",
+      "remediation": "Set 'PASS_WARN_AGE 7' in /etc/login.defs (existing accounts also need: chage --warndays 7 <user>)"
+    },
+    {
+      "id": "CIS-6.2.1",
+      "title": "No accounts have an empty password field in /etc/shadow",
+      "category": "auth",
+      "status": "NOT_APPLICABLE",
+      "rationale": "An empty password field (2nd colon-delimited field in /etc/shadow) means PAM may allow that account to log in with no password at all, depending on nullok settings.",
+      "evidence": "/etc/shadow could not be read (requires root) - cannot verify password fields.",
+      "remediation": "passwd -l <user>  # lock any account found with an empty password field, or set a real password with passwd <user>"
+    },
+    {
+      "id": "CIS-6.2.2",
+      "title": "No duplicate UID 0 (root-equivalent) accounts exist besides root",
+      "category": "auth",
+      "status": "PASS",
+      "rationale": "Any account sharing UID 0 has full root privileges regardless of its username - this is a classic backdoor technique and should never occur outside of 'root' itself.",
+      "evidence": "UID 0 accounts: root",
+      "remediation": "Investigate any extra UID-0 account immediately; usually: usermod -u <new-unique-uid> <account>  or delete it with userdel if unauthorized."
+    },
+    {
+      "id": "CIS-5.4.2",
+      "title": "Root account's default group is GID 0",
+      "category": "auth",
+      "status": "PASS",
+      "rationale": "root's primary group should be the root group (GID 0), matching standard system convention; a different primary group is unusual and worth investigating (could indicate tampering or a broken account migration).",
+      "evidence": "root:x:0:0",
+      "remediation": "usermod -g 0 root"
+    },
+    {
+      "id": "CIS-6.1.2",
+      "title": "/etc/passwd permissions are 644 or more restrictive, owned by root:root",
+      "category": "filesystem",
+      "status": "PASS",
+      "rationale": "/etc/passwd is world-readable by design (it holds no secrets since shadow passwords split hashes into /etc/shadow), but must not be writable by non-root users or accounts could be tampered with.",
+      "evidence": "/etc/passwd: mode=644 owner=root group=root",
+      "remediation": "chown root:root /etc/passwd && chmod 644 /etc/passwd"
+    },
+    {
+      "id": "CIS-6.1.3",
+      "title": "/etc/shadow permissions are 640 or more restrictive, owned by root:shadow",
+      "category": "filesystem",
+      "status": "PASS",
+      "rationale": "/etc/shadow holds password hashes. If it is readable by non-root users, an attacker can take the hashes offline and crack them.",
+      "evidence": "/etc/shadow: mode=640 owner=root group=shadow",
+      "remediation": "chown root:shadow /etc/shadow && chmod 640 /etc/shadow"
+    },
+    {
+      "id": "CIS-6.1.4",
+      "title": "/etc/group permissions are 644 or more restrictive, owned by root:root",
+      "category": "filesystem",
+      "status": "PASS",
+      "rationale": "/etc/group defines group membership; if it's writable by non-root users, a user could add themselves to a privileged group.",
+      "evidence": "/etc/group: mode=644 owner=root group=root",
+      "remediation": "chown root:root /etc/group && chmod 644 /etc/group"
+    },
+    {
+      "id": "CIS-6.1.5",
+      "title": "/etc/gshadow permissions are 640 or more restrictive, owned by root:shadow",
+      "category": "filesystem",
+      "status": "PASS",
+      "rationale": "/etc/gshadow holds group password hashes and administrator lists; it must not be readable or writable by non-root users.",
+      "evidence": "/etc/gshadow: mode=640 owner=root group=shadow",
+      "remediation": "chown root:shadow /etc/gshadow && chmod 640 /etc/gshadow"
+    },
+    {
+      "id": "CIS-6.1.9",
+      "title": "No world-writable files exist in key directories",
+      "category": "filesystem",
+      "status": "PASS",
+      "rationale": "A world-writable file can be modified by any local user, which is a common path to privilege escalation or persistence if that file is ever executed or trusted by a privileged process.",
+      "evidence": "No world-writable regular files found under /tmp, /var/tmp, /home, /etc (20001 entries scanned (scan truncated at entry cap, more may exist)).",
+      "remediation": "For each reported file: chmod o-w <file>  (review the file's purpose first - some world-writable files, e.g. under a sticky-bit /tmp, are intentional)."
+    },
+    {
+      "id": "CIS-6.1.10",
+      "title": "No unowned files or directories exist in key directories",
+      "category": "filesystem",
+      "status": "PASS",
+      "rationale": "A file owned by a UID/GID with no corresponding account (e.g. left behind after a user was deleted) may be inadvertently accessible or reused by a future account created with a reused UID.",
+      "evidence": "No unowned files/directories found under /tmp, /var/tmp, /home, /etc (20001 entries scanned (scan truncated at entry cap, more may exist)).",
+      "remediation": "For each reported path: chown root:root <path>, or assign it to its correct owner after investigating why it's unowned."
+    },
+    {
+      "id": "CIS-6.2.9",
+      "title": "Local interactive user home directories are not group- or other-writable",
+      "category": "filesystem",
+      "status": "PASS",
+      "rationale": "A group- or other-writable home directory lets other local users tamper with that account's dotfiles (e.g. plant a malicious .bashrc) to escalate privilege the next time the owner logs in.",
+      "evidence": "Checked 1 interactive user home director(ies); none are group/other writable.",
+      "remediation": "For each reported home directory: chmod g-w,o-w <home-dir>"
+    },
+    {
+      "id": "CIS-5.4.4",
+      "title": "Default user umask is 027 or more restrictive",
+      "category": "filesystem",
+      "status": "FAIL",
+      "rationale": "A permissive default umask (e.g. 022) means every file a user creates is world-readable by default, including ones that shouldn't be.",
+      "evidence": "No UMASK setting found in /etc/login.defs (login.defs default of 022 applies).",
+      "remediation": "Set 'UMASK 027' in /etc/login.defs, and add 'umask 027' to /etc/profile.d/local-umask.sh for shell sessions."
+    },
+    {
+      "id": "CIS-4.2.1",
+      "title": "auditd is installed and enabled",
+      "category": "logging",
+      "status": "FAIL",
+      "rationale": "auditd provides a tamper-evident record of security-relevant events (file access, syscalls, auth events) that's essential for incident response and compliance - without it, a breach investigation has far less to work with.",
+      "evidence": "auditd is not installed (no auditctl binary, no /usr/sbin/auditd).",
+      "remediation": "apt install auditd audispd-plugins && systemctl --now enable auditd"
+    },
+    {
+      "id": "CIS-4.3",
+      "title": "A system logging service (rsyslog or systemd-journald) is active",
+      "category": "logging",
+      "status": "PASS",
+      "rationale": "Without a running log service, security-relevant events (auth failures, sudo use, service crashes) aren't captured anywhere, which blinds both real-time alerting and after-the-fact investigation.",
+      "evidence": "rsyslog: active; systemd-journald: active",
+      "remediation": "apt install rsyslog && systemctl --now enable rsyslog  (or ensure systemd-journald is running: systemctl --now enable systemd-journald)"
+    },
+    {
+      "id": "CIS-4.2.4",
+      "title": "Authentication log file is not world-readable or writable",
+      "category": "logging",
+      "status": "PASS",
+      "rationale": "Auth logs record login attempts and sudo usage; if readable by any local user they leak information useful for reconnaissance (valid usernames, login timing), and if writable by non-root they could be tampered with to cover an intruder's tracks.",
+      "evidence": "/var/log/auth.log: mode=640 owner=syslog group=adm",
+      "remediation": "chmod 640 /var/log/auth.log && chown syslog:adm /var/log/auth.log"
+    },
+    {
+      "id": "CIS-5.1.8",
+      "title": "cron is restricted to authorized users (cron.allow present, cron.deny absent)",
+      "category": "logging",
+      "status": "FAIL",
+      "rationale": "Without an allow-list, every local user can schedule their own cron jobs by default, which is a common persistence/privilege-escalation vector once an account is compromised.",
+      "evidence": "/etc/cron.allow exists=False, /etc/cron.deny exists=False (expected cron.allow to exist and cron.deny to not exist)",
+      "remediation": "touch /etc/cron.allow && chmod 600 /etc/cron.allow && rm -f /etc/cron.deny   # list only trusted usernames, one per line, in cron.allow"
+    },
+    {
+      "id": "CIS-3.1.1",
+      "title": "IP forwarding is disabled",
+      "category": "network",
+      "status": "FAIL",
+      "rationale": "A host that isn't meant to be a router shouldn't forward packets between interfaces - leaving it enabled widens the blast radius if the host is compromised and could be abused to pivot traffic.",
+      "evidence": "net.ipv4.ip_forward = 1 (expected net.ipv4.ip_forward = 0)",
+      "remediation": "sysctl -w net.ipv4.ip_forward=0 && echo 'net.ipv4.ip_forward=0' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-3.2.1",
+      "title": "ICMP redirects are not accepted",
+      "category": "network",
+      "status": "PASS",
+      "rationale": "Accepting ICMP redirects lets another host on the local network silently alter this host's routing table, a classic MITM technique.",
+      "evidence": "net.ipv4.conf.all.accept_redirects = 0",
+      "remediation": "sysctl -w net.ipv4.conf.all.accept_redirects=0 && echo 'net.ipv4.conf.all.accept_redirects=0' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-3.2.2",
+      "title": "Sending ICMP redirects is disabled",
+      "category": "network",
+      "status": "FAIL",
+      "rationale": "A host that isn't a router shouldn't send ICMP redirects either - doing so can leak internal topology information and isn't needed for a non-routing host.",
+      "evidence": "net.ipv4.conf.all.send_redirects = 1 (expected net.ipv4.conf.all.send_redirects = 0)",
+      "remediation": "sysctl -w net.ipv4.conf.all.send_redirects=0 && echo 'net.ipv4.conf.all.send_redirects=0' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-3.2.4",
+      "title": "Reverse path filtering is enabled",
+      "category": "network",
+      "status": "FAIL",
+      "rationale": "Reverse path filtering drops packets whose source address couldn't have legitimately arrived on the interface they came in on, which mitigates IP spoofing used in many DoS and MITM attacks.",
+      "evidence": "net.ipv4.conf.all.rp_filter = 0 (expected net.ipv4.conf.all.rp_filter = 1 or 2)",
+      "remediation": "sysctl -w net.ipv4.conf.all.rp_filter=1 && echo 'net.ipv4.conf.all.rp_filter=1' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-3.3.1",
+      "title": "TCP SYN cookies are enabled",
+      "category": "network",
+      "status": "PASS",
+      "rationale": "SYN cookies let the kernel keep accepting legitimate connections under a SYN-flood DoS attack instead of exhausting its backlog queue.",
+      "evidence": "net.ipv4.tcp_syncookies = 1",
+      "remediation": "sysctl -w net.ipv4.tcp_syncookies=1 && echo 'net.ipv4.tcp_syncookies=1' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-4.1",
+      "title": "A host-based firewall (ufw/nftables/iptables) is installed and active",
+      "category": "network",
+      "status": "FAIL",
+      "rationale": "A host-based firewall is a baseline defense-in-depth control even behind network firewalls/security groups - without one, every listening service on the host is directly reachable from anything that can route to it.",
+      "evidence": "No firewall tool found on PATH (checked ufw, nft, iptables) - no host-based firewall is installed.",
+      "remediation": "Install and enable one firewall: 'apt install ufw && ufw default deny incoming && ufw enable' is the simplest option for a single host."
+    },
+    {
+      "id": "CIS-2.1.1",
+      "title": "Legacy plaintext-protocol services (telnet/rsh/rlogin/tftp/NIS) are not installed",
+      "category": "services",
+      "status": "PASS",
+      "rationale": "These services transmit credentials and data in cleartext and have long-available encrypted replacements (SSH/SFTP). Their presence is almost always leftover cruft, not an intentional choice.",
+      "evidence": "No legacy service binaries found on PATH (checked: telnet server (in.telnetd), rsh server (rshd), rlogin server (rlogind), TFTP server (tftpd), NIS server (ypserv)).",
+      "remediation": "apt purge telnetd rsh-server rlogin nis tftpd-hpa  # remove whichever are installed"
+    },
+    {
+      "id": "CIS-1.1",
+      "title": "Automatic security updates are configured",
+      "category": "services",
+      "status": "PASS",
+      "rationale": "Unpatched known vulnerabilities are one of the most common initial-access vectors. Automatic security updates close that gap without relying on a human to remember to patch.",
+      "evidence": "/etc/apt/apt.conf.d/20auto-upgrades: 'APT::Periodic::Update-Package-Lists \"1\";\\nAPT::Periodic::Unattended-Upgrade \"1\";'",
+      "remediation": "apt install unattended-upgrades && dpkg-reconfigure -plow unattended-upgrades"
+    },
+    {
+      "id": "CIS-1.6.1",
+      "title": "Address space layout randomization (ASLR) is enabled",
+      "category": "services",
+      "status": "PASS",
+      "rationale": "ASLR randomizes where a process's memory regions are placed, making memory-corruption exploits (buffer overflows, etc.) substantially harder to reliably exploit.",
+      "evidence": "kernel.randomize_va_space = 2",
+      "remediation": "sysctl -w kernel.randomize_va_space=2 && echo 'kernel.randomize_va_space=2' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-1.6.2",
+      "title": "Core dumps are restricted for SUID programs",
+      "category": "services",
+      "status": "PASS",
+      "rationale": "A core dump of a SUID program can leak sensitive memory contents (e.g. credentials handled by that process) to any local user who can read the resulting core file.",
+      "evidence": "fs.suid_dumpable = 0",
+      "remediation": "sysctl -w fs.suid_dumpable=0 && echo 'fs.suid_dumpable=0' >> /etc/sysctl.d/60-cis-hardening.conf"
+    },
+    {
+      "id": "CIS-5.3",
+      "title": "No passwordless (NOPASSWD) sudo entries are configured",
+      "category": "services",
+      "status": "NOT_APPLICABLE",
+      "rationale": "A NOPASSWD sudo rule means anyone with access to that account (e.g. via a stolen SSH key or an unattended session) gets root with no second factor - it collapses 'compromise the account' and 'compromise root' into the same event.",
+      "evidence": "None of /etc/sudoers are readable without root (expected mode 440) - cannot verify.",
+      "remediation": "Edit the offending file with visudo -f <file> and remove the NOPASSWD tag, requiring a password (or configure MFA-backed sudo) for privileged commands."
+    },
+    {
+      "id": "CIS-5.2.4",
+      "title": "SSH root login is disabled (PermitRootLogin no)",
+      "category": "ssh",
+      "status": "NOT_APPLICABLE",
+      "rationale": "Allowing SSH login directly as root removes the audit trail of which named account escalated, and gives a brute-forced/leaked root password or key immediate full access.",
+      "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
+      "remediation": "In /etc/ssh/sshd_config set 'PermitRootLogin no' then systemctl reload sshd"
+    },
+    {
+      "id": "CIS-5.2.5",
+      "title": "SSH PermitEmptyPasswords is disabled",
+      "category": "ssh",
+      "status": "NOT_APPLICABLE",
+      "rationale": "If empty passwords are permitted, any account with a blank password field could log in over SSH with no credential at all.",
+      "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
+      "remediation": "In /etc/ssh/sshd_config set 'PermitEmptyPasswords no' then systemctl reload sshd"
+    },
+    {
+      "id": "CIS-5.2.10",
+      "title": "SSH password authentication is disabled (key-based auth only)",
+      "category": "ssh",
+      "status": "NOT_APPLICABLE",
+      "rationale": "Password authentication over SSH is subject to brute-force and credential-stuffing attacks; disabling it in favor of key-based auth removes that entire attack surface.",
+      "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
+      "remediation": "In /etc/ssh/sshd_config set 'PasswordAuthentication no', ensure your SSH key is deployed and working first, then systemctl reload sshd"
+    },
+    {
+      "id": "CIS-5.2.11",
+      "title": "SSH MaxAuthTries is 4 or less",
+      "category": "ssh",
+      "status": "NOT_APPLICABLE",
+      "rationale": "A high MaxAuthTries lets an attacker attempt many password/key guesses within a single connection, speeding up brute-force attacks.",
+      "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
+      "remediation": "In /etc/ssh/sshd_config set 'MaxAuthTries 4' then systemctl reload sshd"
+    },
+    {
+      "id": "CIS-5.2.16",
+      "title": "SSH X11Forwarding is disabled",
+      "category": "ssh",
+      "status": "NOT_APPLICABLE",
+      "rationale": "X11 forwarding over SSH is rarely needed on a server and expands attack surface (X11 has a long history of privilege-escalation and information-disclosure issues).",
+      "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
+      "remediation": "In /etc/ssh/sshd_config set 'X11Forwarding no' then systemctl reload sshd"
+    },
+    {
+      "id": "CIS-5.2.20",
+      "title": "SSH warning banner is configured",
+      "category": "ssh",
+      "status": "NOT_APPLICABLE",
+      "rationale": "A pre-authentication banner (e.g. an authorized-use warning) is often a legal prerequisite for prosecuting unauthorized access and signals that the system is monitored.",
+      "evidence": "openssh-server is not installed and no sshd_config exists on this host (checked `sshd -T` and /etc/ssh/sshd_config) - SSH hardening does not apply.",
+      "remediation": "Create /etc/issue.net with a warning banner, then in /etc/ssh/sshd_config set 'Banner /etc/issue.net' and systemctl reload sshd"
+    }
+  ]
+}
