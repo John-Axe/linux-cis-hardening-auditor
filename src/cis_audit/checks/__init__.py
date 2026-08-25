@@ -8,6 +8,8 @@ global registry in cis_audit.registry - so simply importing this package
 from cis_audit.checks import (  # noqa: F401
     auth,
     filesystem,
+    kernel_hardening,
+    kernel_modules,
     logging_audit,
     network,
     services,
@@ -17,6 +19,8 @@ from cis_audit.checks import (  # noqa: F401
 __all__ = [
     "auth",
     "filesystem",
+    "kernel_hardening",
+    "kernel_modules",
     "logging_audit",
     "network",
     "services",
