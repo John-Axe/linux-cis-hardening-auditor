@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "linux-cis-hardening-auditor"
+version = "0.1.0"
+description = "Offline, stdlib-only CIS Ubuntu/Debian Linux Benchmark-style hardening auditor"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+authors = [{ name = "John-Axe" }]
+keywords = ["cis", "hardening", "linux", "security", "audit", "sysadmin", "compliance"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Security",
+    "Intended Audience :: System Administrators",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "pytest-cov>=4.0"]
+
+[project.scripts]
+cis-audit = "cis_audit.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/John-Axe/linux-cis-hardening-auditor"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
