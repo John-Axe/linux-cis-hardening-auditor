@@ -7,9 +7,11 @@ global registry in cis_audit.registry - so simply importing this package
 
 from cis_audit.checks import (  # noqa: F401
     auth,
+    auth_expanded,
     banners_and_motd,
     cron_and_pam,
     filesystem,
+    filesystem_expanded,
     kernel_hardening,
     kernel_modules,
     logging_audit,
@@ -18,13 +20,16 @@ from cis_audit.checks import (  # noqa: F401
     network_sysctl_expanded,
     services,
     ssh,
+    ssh_expanded,
 )
 
 __all__ = [
     "auth",
+    "auth_expanded",
     "banners_and_motd",
     "cron_and_pam",
     "filesystem",
+    "filesystem_expanded",
     "kernel_hardening",
     "kernel_modules",
     "logging_audit",
@@ -33,4 +38,5 @@ __all__ = [
     "network_sysctl_expanded",
     "services",
     "ssh",
+    "ssh_expanded",
 ]
