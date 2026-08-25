@@ -7,6 +7,8 @@ global registry in cis_audit.registry - so simply importing this package
 
 from cis_audit.checks import (  # noqa: F401
     auth,
+    banners_and_motd,
+    cron_and_pam,
     filesystem,
     kernel_hardening,
     kernel_modules,
@@ -18,6 +20,8 @@ from cis_audit.checks import (  # noqa: F401
 
 __all__ = [
     "auth",
+    "banners_and_motd",
+    "cron_and_pam",
     "filesystem",
     "kernel_hardening",
     "kernel_modules",
